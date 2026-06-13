@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:padding="20dp">
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="📋 Назначение плана" android:textSize="18sp"
+        android:textStyle="bold" android:textColor="#2196F3"
+        android:layout_marginBottom="16dp" android:gravity="center"/>
+
+    <EditText android:id="@+id/etNotes" android:layout_width="match_parent"
+        android:layout_height="120dp" android:hint="Заметки/Примечания"
+        android:inputType="textMultiLine" android:gravity="top"
+        android:padding="12dp" android:background="@android:drawable/editbox_background"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="⚠️ Нажмите 'Далее' чтобы добавить упражнения"
+        android:textSize="12sp" android:textColor="#FF9800"
+        android:layout_marginTop="8dp" android:gravity="center"/>
+</LinearLayout>

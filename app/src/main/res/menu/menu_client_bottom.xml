@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_workouts"
+        android:icon="@android:drawable/ic_menu_compass"
+        android:title="Тренировки" />
+    <item
+        android:id="@+id/nav_bookings"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="Записи" />
+    <item
+        android:id="@+id/nav_plan"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:title="План" />
+    <item
+        android:id="@+id/nav_progress"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:title="Прогресс" />
+    <item
+        android:id="@+id/nav_contacts"
+        android:icon="@android:drawable/ic_menu_call"
+        android:title="Контакты" />
+</menu>

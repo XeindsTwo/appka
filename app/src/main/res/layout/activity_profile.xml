@@ -1,0 +1,290 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/fitbook_background"
+    android:orientation="vertical"
+    tools:context=".ProfileActivity"
+    tools:theme="@style/Theme.FitBook">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        tools:ignore="UselessParent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:background="@color/fitbook_primary">
+
+                <TextView
+                    android:id="@+id/btnProfileBack"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="18dp"
+                    android:layout_marginTop="42dp"
+                    android:background="@drawable/dashboard_card_tint"
+                    android:fontFamily="@font/inter"
+                    android:gravity="center"
+                    android:text="@string/profile_back"
+                    android:textColor="@color/fitbook_text_primary"
+                    android:textSize="22sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="28dp"
+                    android:fontFamily="@font/inter"
+                    android:includeFontPadding="false"
+                    android:text="@string/profile_title"
+                    android:textColor="@color/fitbook_text_on_accent"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingBottom="30dp">
+
+                    <FrameLayout
+                        android:id="@+id/btnProfilePhoto"
+                        android:layout_width="86dp"
+                        android:layout_height="86dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/ivProfilePhoto"
+                            android:layout_width="76dp"
+                            android:layout_height="76dp"
+                            android:layout_gravity="center"
+                            android:background="@drawable/profile_avatar_bg"
+                            android:scaleType="centerCrop"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearance.FitBook.ProfileAvatar" />
+
+                        <TextView
+                            android:id="@+id/tvProfileInitials"
+                            android:layout_width="76dp"
+                            android:layout_height="76dp"
+                            android:layout_gravity="center"
+                            android:background="@drawable/profile_avatar_bg"
+                            android:fontFamily="@font/inter"
+                            android:gravity="center"
+                            android:text="@string/profile_avatar_mark"
+                            android:textColor="@color/fitbook_text_on_accent"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:layout_gravity="end|bottom"
+                            android:background="@drawable/dashboard_arrow_chip"
+                            android:fontFamily="@font/inter"
+                            android:gravity="center"
+                            android:text="@string/profile_photo_edit"
+                            android:textColor="@color/fitbook_text_on_accent"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/tvProfileName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:fontFamily="@font/inter"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:textColor="@color/fitbook_text_on_accent"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        tools:text="Самвел" />
+
+                    <TextView
+                        android:id="@+id/tvProfileRole"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="7dp"
+                        android:fontFamily="@font/inter"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:textColor="#CC171717"
+                        android:textSize="13sp"
+                        tools:text="Клиент FitBook" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="20dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="@font/inter"
+                    android:includeFontPadding="false"
+                    android:text="@string/profile_name_label"
+                    android:textColor="@color/fitbook_text_secondary"
+                    android:textSize="11sp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.FitBook.LoginTextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:hintEnabled="false">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etProfileName"
+                        android:layout_width="match_parent"
+                        android:layout_height="58dp"
+                        android:autofillHints="name"
+                        android:fontFamily="@font/inter"
+                        android:hint="@string/profile_name_prompt"
+                        android:inputType="textPersonName"
+                        android:textColor="@color/fitbook_text_primary"
+                        android:textColorHint="@color/fitbook_text_hint" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="@font/inter"
+                    android:includeFontPadding="false"
+                    android:text="@string/profile_phone_label"
+                    android:textColor="@color/fitbook_text_secondary"
+                    android:textSize="11sp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.FitBook.LoginTextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:hintEnabled="false">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etProfilePhone"
+                        android:layout_width="match_parent"
+                        android:layout_height="58dp"
+                        android:autofillHints="phone"
+                        android:fontFamily="@font/inter"
+                        android:hint="@string/profile_phone_prompt"
+                        android:inputType="phone"
+                        android:textColor="@color/fitbook_text_primary"
+                        android:textColorHint="@color/fitbook_text_hint" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="@font/inter"
+                    android:includeFontPadding="false"
+                    android:text="@string/profile_email_label"
+                    android:textColor="@color/fitbook_text_secondary"
+                    android:textSize="11sp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.FitBook.LoginTextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:hintEnabled="false">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etProfileEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="58dp"
+                        android:autofillHints="emailAddress"
+                        android:fontFamily="@font/inter"
+                        android:hint="@string/profile_email_prompt"
+                        android:inputType="textEmailAddress"
+                        android:textColor="@color/fitbook_text_primary"
+                        android:textColorHint="@color/fitbook_text_hint" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="@font/inter"
+                    android:includeFontPadding="false"
+                    android:text="@string/profile_password_label"
+                    android:textColor="@color/fitbook_text_secondary"
+                    android:textSize="11sp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilProfilePassword"
+                    style="@style/Widget.FitBook.LoginTextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:endIconMode="password_toggle"
+                    app:hintEnabled="false">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etProfilePassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="58dp"
+                        android:autofillHints="newPassword"
+                        android:fontFamily="@font/inter"
+                        android:hint="@string/profile_password_prompt"
+                        android:inputType="textPassword"
+                        android:textColor="@color/fitbook_text_primary"
+                        android:textColorHint="@color/fitbook_text_hint" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    tools:ignore="NestedWeights" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnProfileSave"
+                    android:layout_width="match_parent"
+                    android:layout_height="62dp"
+                    android:layout_marginTop="16dp"
+                    android:fontFamily="@font/inter"
+                    android:text="@string/profile_save_button"
+                    android:textAllCaps="false"
+                    android:textColor="@color/fitbook_text_on_accent"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/fitbook_primary"
+                    app:cornerRadius="24dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnProfileLogout"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/logout_button_bg"
+                    android:fontFamily="@font/inter"
+                    android:text="@string/profile_logout_button"
+                    android:textAllCaps="false"
+                    android:textColor="#F44336"
+                    android:textStyle="bold"
+                    app:backgroundTint="@null"
+                    app:cornerRadius="24dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
+

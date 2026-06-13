@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#E7FC00</color>
+    <color name="colorPrimaryDark">#B9CA00</color>
+    <color name="colorAccent">#E7FC00</color>
+    <color name="colorBackground">#080808</color>
+    <color name="colorWhite">#FFFFFF</color>
+    <color name="colorBlack">#1A1A2E</color>
+    <color name="colorGray">#6C757D</color>
+    <color name="colorSuccess">#4CAF50</color>
+    <color name="colorDanger">#F44336</color>
+
+    <color name="fitbook_primary">#E7FC00</color>
+    <color name="fitbook_primary_dark">#B9CA00</color>
+    <color name="fitbook_primary_light">#F3FF66</color>
+    <color name="fitbook_accent">#E7FC00</color>
+    <color name="fitbook_background">#080808</color>
+    <color name="fitbook_surface">#171717</color>
+    <color name="fitbook_surface_light">#222222</color>
+    <color name="fitbook_text_primary">#FFFFFF</color>
+    <color name="fitbook_text_on_accent">#171717</color>
+    <color name="fitbook_text_secondary">#A7A7A7</color>
+    <color name="fitbook_text_hint">#7E7E7E</color>
+    <color name="fitbook_stroke">#2B2B2B</color>
+</resources>

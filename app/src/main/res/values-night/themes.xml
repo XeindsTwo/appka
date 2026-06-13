@@ -1,0 +1,19 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Base.Theme.FitBook" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/fitbook_primary</item>
+        <item name="colorPrimaryDark">@color/fitbook_primary_dark</item>
+        <item name="colorSecondary">@color/fitbook_accent</item>
+        <item name="colorAccent">@color/fitbook_accent</item>
+        <item name="colorOnPrimary">@color/fitbook_text_on_accent</item>
+        <item name="colorOnSecondary">@color/fitbook_text_on_accent</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="fontFamily">@font/inter</item>
+        <item name="android:windowBackground">@color/fitbook_background</item>
+        <item name="android:statusBarColor">@color/fitbook_background</item>
+        <item name="android:navigationBarColor">@color/fitbook_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="materialButtonStyle">@style/Widget.FitBook.Button</item>
+        <item name="textInputStyle">@style/Widget.FitBook.TextInputLayout</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.FitBook.MaterialAlertDialog</item>
+    </style>
+</resources>

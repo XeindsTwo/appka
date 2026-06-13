@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📏 Замеры тела"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#2196F3"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+
+        <EditText
+            android:id="@+id/etWeight"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Вес (кг)"
+            android:inputType="numberDecimal"
+            android:padding="12dp"
+            android:background="@android:drawable/editbox_background"
+            android:layout_marginEnd="8dp"/>
+
+        <EditText
+            android:id="@+id/etHeight"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Рост (см)"
+            android:inputType="numberDecimal"
+            android:padding="12dp"
+            android:background="@android:drawable/editbox_background"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+
+        <EditText
+            android:id="@+id/etBiceps"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Бицепс (см)"
+            android:inputType="numberDecimal"
+            android:padding="12dp"
+            android:background="@android:drawable/editbox_background"
+            android:layout_marginEnd="8dp"/>
+
+        <EditText
+            android:id="@+id/etChest"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Грудная клетка (см)"
+            android:inputType="numberDecimal"
+            android:padding="12dp"
+            android:background="@android:drawable/editbox_background"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/etWaist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Талия (см)"
+        android:inputType="numberDecimal"
+        android:padding="12dp"
+        android:background="@android:drawable/editbox_background"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="💡 Проводите замеры раз в 2-4 недели для отслеживания прогресса"
+        android:textSize="11sp"
+        android:textColor="#757575"
+        android:layout_marginTop="12dp"
+        android:gravity="center"/>
+
+</LinearLayout>
