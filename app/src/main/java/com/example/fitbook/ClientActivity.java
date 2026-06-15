@@ -32,7 +32,7 @@ public class ClientActivity extends AppCompatActivity {
 
     private ArrayAdapter<String> adapter;
     private ArrayList<String> dataList;
-    private TextView tvClientName, tvMembershipType, tvMembershipStatus, tvMembershipEndDate, tvMembershipDaysLeft, tvSectionTitle;
+    private TextView tvClientName, tvMembershipType, tvMembershipStatus, tvMembershipEndDate, tvMembershipDaysLeft, tvMembershipPaymentMethod, tvMembershipGoal, tvMembershipTimeSlot, tvSectionTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,11 +50,14 @@ public class ClientActivity extends AppCompatActivity {
         tvMembershipStatus = findViewById(R.id.tvMembershipStatus);
         tvMembershipEndDate = findViewById(R.id.tvMembershipEndDate);
         tvMembershipDaysLeft = findViewById(R.id.tvMembershipDaysLeft);
+        tvMembershipPaymentMethod = findViewById(R.id.tvMembershipPaymentMethod);
+        tvMembershipGoal = findViewById(R.id.tvMembershipGoal);
+        tvMembershipTimeSlot = findViewById(R.id.tvMembershipTimeSlot);
         tvMembershipStatus = findViewById(R.id.tvMembershipStatus);
         tvSectionTitle = findViewById(R.id.tvSectionTitle);
         listView = findViewById(R.id.listView);
         tvClientName.setText(clientName);
-        tvSectionTitle.setText("Р вЂќР С•РЎРѓРЎвЂљРЎС“Р С—Р Р…РЎвЂ№Р Вµ РЎвЂљРЎР‚Р ВµР Р…Р С‘РЎР‚Р С•Р Р†Р С”Р С‘");
+        tvSectionTitle.setText(getString(R.string.client_workouts_title));
 
         dataList = new ArrayList<>();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, dataList);
@@ -65,9 +68,13 @@ public class ClientActivity extends AppCompatActivity {
         findViewById(R.id.btnMyBookings).setOnClickListener(v -> loadMyBookings());
         findViewById(R.id.btnMyPlan).setOnClickListener(v -> loadMyPlan());
         findViewById(R.id.btnAnthropometry).setOnClickListener(v -> showAnthropometryDialog());
-        findViewById(R.id.btnOpenProfile).setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));        setupBottomNavigation();
+        findViewById(R.id.btnOpenProfile).setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
+        findViewById(R.id.cardMembershipSummary).setOnClickListener(v -> openMembershipsScreen());
+        findViewById(R.id.btnOpenMemberships).setOnClickListener(v -> openMembershipsScreen());
+        setupBottomNavigation();
 
         loadMembershipStatus();
+        loadMembershipApplicationSummary();
         loadAvailableWorkouts();
     }
 
@@ -77,19 +84,19 @@ public class ClientActivity extends AppCompatActivity {
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_workouts) {
-                tvSectionTitle.setText("Р вЂќР С•РЎРѓРЎвЂљРЎС“Р С—Р Р…РЎвЂ№Р Вµ РЎвЂљРЎР‚Р ВµР Р…Р С‘РЎР‚Р С•Р Р†Р С”Р С‘");
+                tvSectionTitle.setText(getString(R.string.client_workouts_title));
                 loadAvailableWorkouts();
                 return true;
             } else if (itemId == R.id.nav_bookings) {
-                tvSectionTitle.setText("Р СљР С•Р С‘ Р В·Р В°Р С—Р С‘РЎРѓР С‘");
+                tvSectionTitle.setText(getString(R.string.client_bookings_title));
                 loadMyBookings();
                 return true;
             } else if (itemId == R.id.nav_plan) {
-                tvSectionTitle.setText("Р СљР С•Р в„– Р С—Р В»Р В°Р Р…");
+                tvSectionTitle.setText(getString(R.string.client_plan_title));
                 loadMyPlan();
                 return true;
             } else if (itemId == R.id.nav_progress) {
-                tvSectionTitle.setText("Р СџРЎР‚Р С•Р С–РЎР‚Р ВµРЎРѓРЎРѓ");
+                tvSectionTitle.setText(getString(R.string.client_progress_title));
                 showProgress();
                 return true;
             } else if (itemId == R.id.nav_contacts) {
@@ -126,6 +133,24 @@ public class ClientActivity extends AppCompatActivity {
             tvMembershipType.setTextColor(getColor(R.color.fitbook_text_primary));
             tvMembershipEndDate.setTextColor(getColor(R.color.fitbook_text_secondary));
             tvMembershipDaysLeft.setTextColor(getColor(R.color.fitbook_text_secondary));
+        }
+    }
+
+    private void openMembershipsScreen() {
+        startActivity(new Intent(this, MembershipsActivity.class));
+    }
+
+    private void loadMembershipApplicationSummary() {
+        Cursor latestApplication = dbHelper.getLatestMembershipApplication(clientId);
+        if (latestApplication != null && latestApplication.moveToFirst()) {
+            tvMembershipPaymentMethod.setText(getCursorString(latestApplication, DatabaseHelper.COL_MA_PAYMENT_METHOD, "—"));
+            tvMembershipGoal.setText(getCursorString(latestApplication, DatabaseHelper.COL_MA_GOAL, "—"));
+            tvMembershipTimeSlot.setText(getCursorString(latestApplication, DatabaseHelper.COL_MA_TIME_SLOT, "—"));
+            latestApplication.close();
+        } else {
+            tvMembershipPaymentMethod.setText("—");
+            tvMembershipGoal.setText("—");
+            tvMembershipTimeSlot.setText("—");
         }
     }
 
@@ -645,7 +670,7 @@ public class ClientActivity extends AppCompatActivity {
                     boolean success = dbHelper.purchaseMembership(clientId, typeId);
                     if (success) {
                         Toast.makeText(this, "Р Р†РЎС™РІР‚Сљ Р В РЎвЂ™Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™ \"" + finalName + "\" Р РЋРЎвЂњР РЋР С“Р В РЎвЂ”Р В Р’ВµР РЋРІвЂљВ¬Р В Р вЂ¦Р В РЎвЂў Р В РЎвЂ”Р РЋР вЂљР В РЎвЂР В РЎвЂўР В Р’В±Р РЋР вЂљР В Р’ВµР РЋРІР‚С™Р В Р’ВµР В Р вЂ¦!", Toast.LENGTH_LONG).show();
-                        showMembershipSection();
+                        openMembershipsScreen();
                         loadMembershipStatus();
                     } else {
                         Toast.makeText(this, "Р Р†РЎСљР Р‰ Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р В РЎвЂ”Р РЋР вЂљР В РЎвЂ Р В РЎвЂ”Р В РЎвЂўР В РЎвЂќР РЋРЎвЂњР В РЎвЂ”Р В РЎвЂќР В Р’Вµ Р В Р’В°Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™Р В Р’В°", Toast.LENGTH_SHORT).show();

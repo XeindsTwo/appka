@@ -1,135 +1,222 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="20dp">
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="➕ Добавление упражнений"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="#2196F3"
-        android:layout_marginBottom="16dp"
-        android:gravity="center"/>
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/fitbook_surface"
         android:orientation="vertical"
-        android:layout_marginBottom="16dp"
-        android:padding="12dp"
-        android:background="#F5F5F5">
+        android:padding="20dp">
 
         <TextView
+            style="@style/TextAppearance.FitBook.DialogTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Добавить упражнение"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="12dp"/>
+            android:gravity="center"
+            android:text="Добавление упражнений" />
 
-        <EditText
-            android:id="@+id/etExerciseName"
+        <TextView
+            style="@style/TextAppearance.FitBook.DialogSubtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Название упражнения"
-            android:inputType="text"
-            android:padding="12dp"
-            android:background="@android:drawable/editbox_background"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="Соберите тренировочный блок" />
+
+        <TextView
+            style="@style/TextAppearance.FitBook.DialogLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="6dp"
+            android:text="Название упражнения" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.FitBook.DarkDialogTextInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:hintEnabled="false">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etExerciseName"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:fontFamily="@font/inter"
+                android:hint="Введите название упражнения"
+                android:inputType="text"
+                android:minHeight="58dp"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp"
+                android:textColor="@color/fitbook_text_primary"
+                android:textColorHint="@color/fitbook_text_hint"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="12dp">
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
 
-            <EditText
-                android:id="@+id/etSets"
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Подходы"
-                android:inputType="number"
-                android:text="3"
-                android:padding="12dp"
-                android:background="@android:drawable/editbox_background"
-                android:layout_marginEnd="8dp"/>
+                android:orientation="vertical"
+                android:layout_marginEnd="6dp">
 
-            <EditText
-                android:id="@+id/etReps"
+                <TextView
+                    style="@style/TextAppearance.FitBook.DialogLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:text="Подходы" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.FitBook.DarkDialogTextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:hintEnabled="false">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etSets"
+                        android:layout_width="match_parent"
+                        android:layout_height="58dp"
+                        android:fontFamily="@font/inter"
+                        android:hint="3"
+                        android:inputType="number"
+                        android:minHeight="58dp"
+                        android:paddingStart="16dp"
+                        android:paddingTop="8dp"
+                        android:paddingEnd="16dp"
+                        android:paddingBottom="8dp"
+                        android:textColor="@color/fitbook_text_primary"
+                        android:textColorHint="@color/fitbook_text_hint"
+                        android:textSize="15sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Повторения"
-                android:inputType="number"
-                android:text="12"
-                android:padding="12dp"
-                android:background="@android:drawable/editbox_background"
-                android:layout_marginStart="8dp"/>
+                android:orientation="vertical"
+                android:layout_marginStart="6dp">
+
+                <TextView
+                    style="@style/TextAppearance.FitBook.DialogLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:text="Повторы" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.FitBook.DarkDialogTextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:hintEnabled="false">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etReps"
+                        android:layout_width="match_parent"
+                        android:layout_height="58dp"
+                        android:fontFamily="@font/inter"
+                        android:hint="12"
+                        android:inputType="number"
+                        android:minHeight="58dp"
+                        android:paddingStart="16dp"
+                        android:paddingTop="8dp"
+                        android:paddingEnd="16dp"
+                        android:paddingBottom="8dp"
+                        android:textColor="@color/fitbook_text_primary"
+                        android:textColorHint="@color/fitbook_text_hint"
+                        android:textSize="15sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
         </LinearLayout>
 
-        <EditText
-            android:id="@+id/etWeight"
+        <TextView
+            style="@style/TextAppearance.FitBook.DialogLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Рекомендуемый вес (кг)"
-            android:inputType="numberDecimal"
-            android:text="50"
-            android:padding="12dp"
-            android:background="@android:drawable/editbox_background"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="6dp"
+            android:text="Рекомендуемый вес" />
 
-        <Button
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.FitBook.DarkDialogTextInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:hintEnabled="false">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etWeight"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:fontFamily="@font/inter"
+                android:hint="50"
+                android:inputType="numberDecimal"
+                android:minHeight="58dp"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp"
+                android:textColor="@color/fitbook_text_primary"
+                android:textColorHint="@color/fitbook_text_hint"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddExercise"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="➕ Добавить в план"
-            android:backgroundTint="#4CAF50"/>
-    </LinearLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="📋 Упражнения в плане:"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp"/>
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="#F5F5F5"
-        android:padding="8dp">
+            android:layout_marginTop="16dp"
+            android:text="Добавить в план" />
 
         <TextView
-            android:id="@+id/tvExercisesList"
+            style="@style/TextAppearance.FitBook.DialogSubtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Пока нет упражнений"
-            android:textSize="13sp"
-            android:lineSpacingExtra="4dp"/>
-    </ScrollView>
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:text="Добавляйте упражнения по одному, затем завершите план" />
 
-    <Button
-        android:id="@+id/btnFinish"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="✅ Завершить и сохранить план"
-        android:backgroundTint="#2196F3"
-        android:layout_marginTop="16dp"/>
+        <TextView
+            style="@style/TextAppearance.FitBook.DialogLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:text="Упражнения в плане" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="💡 Добавляйте упражнения одно за другим"
-        android:textSize="11sp"
-        android:textColor="#757575"
-        android:layout_marginTop="8dp"
-        android:gravity="center"/>
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:background="@drawable/card_list_bg"
+            android:padding="12dp">
 
-</LinearLayout>
+            <TextView
+                android:id="@+id/tvExercisesList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/inter"
+                android:lineSpacingExtra="4dp"
+                android:text="Пока нет упражнений"
+                android:textColor="@color/fitbook_text_primary"
+                android:textSize="13sp" />
+        </ScrollView>
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFinish"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Завершить и сохранить план" />
+    </LinearLayout>
+</ScrollView>

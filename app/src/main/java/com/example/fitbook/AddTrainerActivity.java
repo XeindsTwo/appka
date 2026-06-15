@@ -1,14 +1,13 @@
 package com.example.fitbook;
 
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
 public class AddTrainerActivity extends AppCompatActivity {
 
@@ -31,12 +30,7 @@ public class AddTrainerActivity extends AppCompatActivity {
         etSpecialization = findViewById(R.id.etSpecialization);
         etExperience = findViewById(R.id.etExperience);
 
-        ArrayAdapter<String> specializationAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_list_item_1,
-                getResources().getStringArray(R.array.specialization_options)
-        );
-        etSpecialization.setAdapter(specializationAdapter);
+        UiFormUtils.attachDarkDropdown(this, etSpecialization, java.util.Arrays.asList(getResources().getStringArray(R.array.specialization_options)));
 
         MaterialButton btnSave = findViewById(R.id.btnSave);
         MaterialButton btnCancel = findViewById(R.id.btnCancel);

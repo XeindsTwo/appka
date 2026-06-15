@@ -41,13 +41,13 @@ public class TrainerActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("РџР°РЅРµР»СЊ С‚СЂРµРЅРµСЂР°");
+        getSupportActionBar().setTitle(getString(R.string.trainer_dashboard_title));
 
         tvTrainerName = findViewById(R.id.tvTrainerName);
         tvSectionTitle = findViewById(R.id.tvSectionTitle);
         listView = findViewById(R.id.listView);
-        tvTrainerName.setText("рџ‘ЁвЂЌрџЏ« " + trainerName);
-        tvSectionTitle.setText("РњРѕРё С‚СЂРµРЅРёСЂРѕРІРєРё");
+        tvTrainerName.setText(getString(R.string.trainer_role_label) + " " + trainerName);
+        tvSectionTitle.setText(getString(R.string.trainer_schedule_title));
 
         dataList = new ArrayList<>();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, dataList);
@@ -67,15 +67,15 @@ public class TrainerActivity extends AppCompatActivity {
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_trainer_schedule) {
-                tvSectionTitle.setText("РњРѕРё С‚СЂРµРЅРёСЂРѕРІРєРё");
+                tvSectionTitle.setText(getString(R.string.trainer_schedule_title));
                 loadMySchedule();
                 return true;
             } else if (itemId == R.id.nav_trainer_clients) {
-                tvSectionTitle.setText("РњРѕРё РєР»РёРµРЅС‚С‹");
+                tvSectionTitle.setText(getString(R.string.trainer_clients_title));
                 loadMyClients();
                 return true;
             } else if (itemId == R.id.nav_trainer_plan) {
-                tvSectionTitle.setText("РќР°Р·РЅР°С‡РµРЅРёРµ РїР»Р°РЅР°");
+                tvSectionTitle.setText(getString(R.string.trainer_plan_title));
                 loadMyClientsForAssign();
                 return true;
             }
@@ -169,7 +169,7 @@ public class TrainerActivity extends AppCompatActivity {
 
         final EditText etNotes = view.findViewById(R.id.etNotes);
 
-        builder.setTitle("рџ“‹ РќР°Р·РЅР°С‡РёС‚СЊ РїР»Р°РЅ РґР»СЏ " + clientName)
+        builder.setTitle(getString(R.string.trainer_assign_plan_title, clientName))
                 .setView(view)
                 .setPositiveButton("Р”Р°Р»РµРµ", (dialog, which) -> {
                     long planId = dbHelper.createWorkoutPlan(clientId, trainerId, etNotes.getText().toString());
@@ -197,7 +197,7 @@ public class TrainerActivity extends AppCompatActivity {
 
         final StringBuilder exercisesList = new StringBuilder();
 
-        builder.setTitle("вћ• Р”РѕР±Р°РІРёС‚СЊ СѓРїСЂР°Р¶РЅРµРЅРёСЏ РґР»СЏ " + clientName)
+        builder.setTitle(getString(R.string.trainer_add_exercises_title, clientName))
                 .setView(view)
                 .setCancelable(false);
 
@@ -241,15 +241,15 @@ public class TrainerActivity extends AppCompatActivity {
 
     private void logout() {
         AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
-        builder.setTitle("Р’С‹С…РѕРґ")
-                .setMessage("Р’С‹ СѓРІРµСЂРµРЅС‹, С‡С‚Рѕ С…РѕС‚РёС‚Рµ РІС‹Р№С‚Рё?")
-                .setPositiveButton("Р”Р°", (dialog, which) -> {
+        builder.setTitle(getString(R.string.trainer_logout_title))
+                .setMessage(getString(R.string.trainer_logout_message))
+                .setPositiveButton(getString(R.string.trainer_logout_positive), (dialog, which) -> {
                     SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
                     prefs.edit().clear().apply();
                     startActivity(new Intent(this, LoginActivity.class));
                     finish();
                 })
-                .setNegativeButton("РћС‚РјРµРЅР°", null)
+                .setNegativeButton(getString(R.string.trainer_logout_negative), null)
                 .show();
     }
 }

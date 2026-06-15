@@ -6,14 +6,20 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import androidx.annotation.NonNull;
+
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.List;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Random;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "fitness_club.db";
-    private static final int DATABASE_VERSION = 8;
+    private static final int DATABASE_VERSION = 9;
 
     // ==================== ТАБЛИЦА ПОЛЬЗОВАТЕЛЕЙ ====================
     public static final String TABLE_USERS = "users";
@@ -44,6 +50,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_MEM_STATUS = "mem_status";
     public static final String COL_MEM_PURCHASE_DATE = "mem_purchase_date";
     public static final String COL_MEM_TYPE_NAME = "mem_type_name";
+
+    // ==================== РЎРўР РЈРљРўРЈР Рђ Р—РђРЇР’РћРљ РџРћ РђР‘РћРќР•РњР•РќРўРђРњ ====================
+    public static final String TABLE_MEMBERSHIP_APPLICATIONS = "membership_applications";
+    public static final String COL_MA_ID = "ma_id";
+    public static final String COL_MA_CLIENT_ID = "ma_client_id";
+    public static final String COL_MA_TYPE_ID = "ma_type_id";
+    public static final String COL_MA_PAYMENT_METHOD = "ma_payment_method";
+    public static final String COL_MA_GOAL = "ma_goal";
+    public static final String COL_MA_TIME_SLOT = "ma_time_slot";
+    public static final String COL_MA_NOTE = "ma_note";
+    public static final String COL_MA_CREATED_AT = "ma_created_at";
+    public static final String COL_MA_STATUS = "ma_status";
 
     // ==================== ТАБЛИЦА ТРЕНЕРОВ ====================
     public static final String TABLE_TRAINERS = "trainers";
@@ -120,6 +138,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     @Override
+    public void onOpen(SQLiteDatabase db) {
+        super.onOpen(db);
+        seedDemoDataIfNeeded(db);
+    }
+
+    @Override
     public void onCreate(SQLiteDatabase db) {
         // Таблица пользователей
         db.execSQL("CREATE TABLE " + TABLE_USERS + " (" +
@@ -150,6 +174,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_MEM_STATUS + " TEXT, " +
                 COL_MEM_PURCHASE_DATE + " TEXT, " +
                 COL_MEM_TYPE_NAME + " TEXT)");
+
+        createMembershipApplicationsTable(db);
 
         // Таблица тренеров
         db.execSQL("CREATE TABLE " + TABLE_TRAINERS + " (" +
@@ -303,6 +329,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         membership.put(COL_MEM_PURCHASE_DATE, "2024-01-01");
         membership.put(COL_MEM_TYPE_NAME, "месячный");
         db.insert(TABLE_MEMBERSHIPS, null, membership);
+        seedMembershipHistory(db, clientId);
 
         // Тестовые тренировки
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
@@ -317,6 +344,403 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         addTestWorkout(db, trainerId, "CrossFit", threeDaysLater, "20:00", 50, 12, 0);
         addTestWorkout(db, trainerId, "Пилатес", getFutureDate(4), "11:00", 55, 10, 1);
         addTestWorkout(db, trainerId, "Функциональный тренинг", getFutureDate(5), "17:00", 60, 12, 2);
+    }
+
+    private void seedDemoDataIfNeeded(SQLiteDatabase db) {
+        Cursor marker = db.query(TABLE_USERS, new String[]{COL_USER_ID}, COL_USERNAME + "=?",
+                new String[]{"demo_admin"}, null, null, null);
+        boolean alreadySeeded = marker != null && marker.getCount() > 0;
+        if (marker != null) {
+            marker.close();
+        }
+        if (!alreadySeeded) {
+            seedDemoData(db);
+        }
+    }
+
+    public void reseedDemoData() {
+        SQLiteDatabase db = getWritableDatabase();
+        clearDemoData(db);
+        seedDemoData(db);
+    }
+
+    private void clearDemoData(SQLiteDatabase db) {
+        List<String> tables = Arrays.asList(
+                TABLE_WORKOUT_RESULTS,
+                TABLE_BOOKINGS,
+                TABLE_PLAN_EXERCISES,
+                TABLE_WORKOUT_PLANS,
+                TABLE_ANTHROPOMETRY,
+                TABLE_CLIENT_ASSIGNMENTS,
+                TABLE_SCHEDULE,
+                TABLE_MEMBERSHIPS,
+                TABLE_MEMBERSHIP_APPLICATIONS,
+                TABLE_TRAINERS,
+                TABLE_USERS,
+                TABLE_MEMBERSHIP_TYPES
+        );
+        for (String table : tables) {
+            db.delete(table, null, null);
+        }
+    }
+
+    private void seedDemoData(SQLiteDatabase db) {
+        if (hasDemoData(db)) {
+            return;
+        }
+
+        long adminId = ensureUser(db, "demo_admin", "demo123", "admin", "Администратор", "+7-900-000-00-01", "admin@fitbook.demo");
+        long trainer1Id = ensureUser(db, "demo_trainer_1", "trainer123", "trainer", "Иван Петров", "+7-900-000-00-02", "ivan.petrov@fitbook.demo");
+        long trainer2Id = ensureUser(db, "demo_trainer_2", "trainer123", "trainer", "Мария Смирнова", "+7-900-000-00-03", "maria.smirnova@fitbook.demo");
+        long trainer3Id = ensureUser(db, "demo_trainer_3", "trainer123", "trainer", "Алексей Орлов", "+7-900-000-00-04", "alexey.orlov@fitbook.demo");
+
+        ensureTrainerProfile(db, trainer1Id, "Силовые, функциональный тренинг", 7);
+        ensureTrainerProfile(db, trainer2Id, "Йога, пилатес, растяжка", 5);
+        ensureTrainerProfile(db, trainer3Id, "Кардио, похудение, ОФП", 9);
+
+        long client1Id = ensureUser(db, "demo_client_1", "client123", "client", "Самвел К.", "+7-900-100-00-01", "samvel@fitbook.demo");
+        long client2Id = ensureUser(db, "demo_client_2", "client123", "client", "Денис М.", "+7-900-100-00-02", "denis@fitbook.demo");
+        long client3Id = ensureUser(db, "demo_client_3", "client123", "client", "Алина С.", "+7-900-100-00-03", "alina@fitbook.demo");
+        long client4Id = ensureUser(db, "demo_client_4", "client123", "client", "Ольга В.", "+7-900-100-00-04", "olga@fitbook.demo");
+        long client5Id = ensureUser(db, "demo_client_5", "client123", "client", "Роман Т.", "+7-900-100-00-05", "roman@fitbook.demo");
+        long client6Id = ensureUser(db, "demo_client_6", "client123", "client", "Екатерина Л.", "+7-900-100-00-06", "kate@fitbook.demo");
+
+        ensureMembershipTypes(db);
+
+        ensureAssignment(db, client1Id, trainer1Id, "Основной клиент");
+        ensureAssignment(db, client2Id, trainer1Id, "Набор массы");
+        ensureAssignment(db, client3Id, trainer2Id, "Мягкая нагрузка");
+        ensureAssignment(db, client4Id, trainer2Id, "Снижение веса");
+        ensureAssignment(db, client5Id, trainer3Id, "Поддержание формы");
+        ensureAssignment(db, client6Id, trainer3Id, "Подготовка к марафону");
+
+        ensureMembership(db, client1Id, 3, -30, 335, "expired");
+        ensureMembership(db, client1Id, 2, -15, 15, "active");
+        ensureMembership(db, client2Id, 1, -12, 18, "active");
+        ensureMembership(db, client3Id, 4, -40, 325, "expired");
+        ensureMembership(db, client3Id, 2, -3, 27, "active");
+        ensureMembership(db, client4Id, 2, -10, 20, "active");
+        ensureMembership(db, client5Id, 1, -60, -30, "expired");
+        ensureMembership(db, client6Id, 3, -5, 360, "active");
+
+        ensureApplication(db, client4Id, 2, "card", "Похудение", "вечер", "Хочу заниматься после работы");
+        ensureApplication(db, client5Id, 3, "cash", "Выносливость", "утро", "Без противопоказаний");
+
+        long schedule1 = ensureSchedule(db, trainer1Id, "Силовая тренировка", 1, "18:00", 60, 12, 8);
+        long schedule2 = ensureSchedule(db, trainer1Id, "Грудь + трицепс", 2, "19:15", 55, 10, 6);
+        long schedule3 = ensureSchedule(db, trainer2Id, "Йога", 1, "09:30", 60, 15, 9);
+        long schedule4 = ensureSchedule(db, trainer2Id, "Пилатес", 3, "11:00", 50, 12, 4);
+        long schedule5 = ensureSchedule(db, trainer3Id, "Кардио", 1, "20:00", 45, 14, 11);
+        long schedule6 = ensureSchedule(db, trainer3Id, "Функциональный тренинг", 4, "17:30", 60, 10, 7);
+
+        ensureBooking(db, schedule1, client1Id, "confirmed");
+        ensureBooking(db, schedule2, client2Id, "confirmed");
+        ensureBooking(db, schedule3, client3Id, "completed");
+        ensureBooking(db, schedule4, client4Id, "confirmed");
+        ensureBooking(db, schedule5, client5Id, "cancelled");
+        ensureBooking(db, schedule6, client6Id, "confirmed");
+
+        long plan1 = ensureWorkoutPlan(db, client1Id, trainer1Id, "Набор мышечной массы и стабилизация корпуса");
+        long plan2 = ensureWorkoutPlan(db, client3Id, trainer2Id, "Мягкий план на мобильность и растяжку");
+        long plan3 = ensureWorkoutPlan(db, client6Id, trainer3Id, "Подготовка выносливости и кардио");
+
+        ensurePlanExercise(db, plan1, "Жим лёжа", 4, 10, 45f);
+        ensurePlanExercise(db, plan1, "Приседания со штангой", 4, 8, 55f);
+        ensurePlanExercise(db, plan1, "Планка", 3, 60, 0f);
+
+        ensurePlanExercise(db, plan2, "Кошка-корова", 3, 12, 0f);
+        ensurePlanExercise(db, plan2, "Наклоны", 3, 15, 0f);
+
+        ensurePlanExercise(db, plan3, "Беговая дорожка", 5, 10, 0f);
+        ensurePlanExercise(db, plan3, "Интервальный бег", 6, 5, 0f);
+
+        ensureMeasurement(db, client1Id, -14, 84.4f, 178f, 36.0f, 102.0f, 80.0f);
+        ensureMeasurement(db, client1Id, -7, 83.8f, 178f, 36.5f, 101.2f, 79.3f);
+        ensureMeasurement(db, client3Id, -9, 61.2f, 167f, 29.0f, 88.5f, 66.0f);
+        ensureMeasurement(db, client6Id, -4, 72.5f, 171f, 32.0f, 94.0f, 73.5f);
+    }
+
+    private boolean hasDemoData(SQLiteDatabase db) {
+        Cursor cursor = db.query(TABLE_USERS, new String[]{COL_USER_ID}, COL_USERNAME + " IN (?, ?, ?)",
+                new String[]{"demo_admin", "demo_client_1", "demo_trainer_1"}, null, null, null);
+        boolean result = cursor != null && cursor.getCount() > 0;
+        if (cursor != null) cursor.close();
+        return result;
+    }
+
+    private long ensureUser(SQLiteDatabase db, String username, String password, String role, String fullName, String phone, String email) {
+        Cursor cursor = db.query(TABLE_USERS, new String[]{COL_USER_ID}, COL_USERNAME + "=?",
+                new String[]{username}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            long userId = cursor.getLong(0);
+            cursor.close();
+            return userId;
+        }
+        if (cursor != null) cursor.close();
+
+        ContentValues values = new ContentValues();
+        values.put(COL_USERNAME, username);
+        values.put(COL_PASSWORD, password);
+        values.put(COL_ROLE, role);
+        values.put(COL_FULL_NAME, fullName);
+        values.put(COL_PHONE, phone);
+        values.put(COL_EMAIL, email);
+        return db.insert(TABLE_USERS, null, values);
+    }
+
+    private void ensureTrainerProfile(SQLiteDatabase db, long trainerId, String specialization, int experience) {
+        Cursor cursor = db.query(TABLE_TRAINERS, new String[]{COL_TRAINER_ID}, COL_TRAINER_ID + "=?",
+                new String[]{String.valueOf(trainerId)}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            cursor.close();
+            return;
+        }
+        if (cursor != null) cursor.close();
+
+        ContentValues values = new ContentValues();
+        values.put(COL_TRAINER_ID, trainerId);
+        values.put(COL_SPECIALIZATION, specialization);
+        values.put(COL_EXPERIENCE, experience);
+        db.insert(TABLE_TRAINERS, null, values);
+    }
+
+    private void ensureMembershipTypes(SQLiteDatabase db) {
+        ensureMembershipType(db, "Дневной", "Посещение по будням в дневное время", 30, 2400, 1);
+        ensureMembershipType(db, "Месячный", "Полный доступ на месяц", 30, 3900, 1);
+        ensureMembershipType(db, "Полугодовой", "Выгодный план на 6 месяцев", 180, 15900, 1);
+        ensureMembershipType(db, "Годовой", "Максимальная выгода на 12 месяцев", 365, 28900, 1);
+    }
+
+    private void ensureMembershipType(SQLiteDatabase db, String name, String description, int durationDays, int price, int isActive) {
+        Cursor cursor = db.query(TABLE_MEMBERSHIP_TYPES, new String[]{COL_MT_ID}, COL_MT_NAME + "=?",
+                new String[]{name}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            cursor.close();
+            return;
+        }
+        if (cursor != null) cursor.close();
+
+        ContentValues values = new ContentValues();
+        values.put(COL_MT_NAME, name);
+        values.put(COL_MT_DESCRIPTION, description);
+        values.put(COL_MT_DURATION_DAYS, durationDays);
+        values.put(COL_MT_PRICE, price);
+        values.put(COL_MT_IS_ACTIVE, isActive);
+        db.insert(TABLE_MEMBERSHIP_TYPES, null, values);
+    }
+
+    private void ensureAssignment(SQLiteDatabase db, long clientId, long trainerId, String note) {
+        Cursor cursor = db.query(TABLE_CLIENT_ASSIGNMENTS, new String[]{COL_CA_ID},
+                COL_CA_CLIENT_ID + "=? AND " + COL_CA_TRAINER_ID + "=?",
+                new String[]{String.valueOf(clientId), String.valueOf(trainerId)}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            cursor.close();
+            return;
+        }
+        if (cursor != null) cursor.close();
+
+        ContentValues values = new ContentValues();
+        values.put(COL_CA_CLIENT_ID, clientId);
+        values.put(COL_CA_TRAINER_ID, trainerId);
+        values.put(COL_CA_ASSIGNED_AT, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+        values.put(COL_CA_NOTE, note);
+        db.insert(TABLE_CLIENT_ASSIGNMENTS, null, values);
+    }
+
+    private void ensureMembership(SQLiteDatabase db, long clientId, long typeId, int startOffsetDays, int endOffsetDays, String status) {
+        Cursor cursor = db.query(TABLE_MEMBERSHIPS, new String[]{COL_MEM_ID},
+                COL_MEM_CLIENT_ID + "=? AND " + COL_MEM_TYPE_ID + "=? AND " + COL_MEM_STATUS + "=?",
+                new String[]{String.valueOf(clientId), String.valueOf(typeId), status}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            cursor.close();
+            return;
+        }
+        if (cursor != null) cursor.close();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String startDate = shiftDate(startOffsetDays);
+        String endDate = shiftDate(endOffsetDays);
+        String typeName = getMembershipTypeName(db, typeId);
+
+        ContentValues values = new ContentValues();
+        values.put(COL_MEM_CLIENT_ID, clientId);
+        values.put(COL_MEM_TYPE_ID, typeId);
+        values.put(COL_MEM_START_DATE, startDate);
+        values.put(COL_MEM_END_DATE, endDate);
+        values.put(COL_MEM_STATUS, status);
+        values.put(COL_MEM_PURCHASE_DATE, startDate);
+        values.put(COL_MEM_TYPE_NAME, typeName);
+        db.insert(TABLE_MEMBERSHIPS, null, values);
+    }
+
+    private void ensureApplication(SQLiteDatabase db, long clientId, long typeId, String paymentMethod, String goal, String timeSlot, String note) {
+        Cursor cursor = db.query(TABLE_MEMBERSHIP_APPLICATIONS, new String[]{COL_MA_ID},
+                COL_MA_CLIENT_ID + "=? AND " + COL_MA_TYPE_ID + "=?",
+                new String[]{String.valueOf(clientId), String.valueOf(typeId)}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            cursor.close();
+            return;
+        }
+        if (cursor != null) cursor.close();
+
+        ContentValues values = new ContentValues();
+        values.put(COL_MA_CLIENT_ID, clientId);
+        values.put(COL_MA_TYPE_ID, typeId);
+        values.put(COL_MA_PAYMENT_METHOD, paymentMethod);
+        values.put(COL_MA_GOAL, goal);
+        values.put(COL_MA_TIME_SLOT, timeSlot);
+        values.put(COL_MA_NOTE, note);
+        values.put(COL_MA_CREATED_AT, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+        values.put(COL_MA_STATUS, "confirmed");
+        db.insert(TABLE_MEMBERSHIP_APPLICATIONS, null, values);
+    }
+
+    private long ensureSchedule(SQLiteDatabase db, long trainerId, String workoutType, int dayOffset, String time, int duration, int maxClients, int currentClients) {
+        String date = shiftDate(dayOffset);
+        Cursor cursor = db.query(TABLE_SCHEDULE, new String[]{COL_SCHEDULE_ID},
+                COL_SCHEDULE_TRAINER_ID + "=? AND " + COL_WORKOUT_TYPE + "=? AND " + COL_WORKOUT_DATE + "=? AND " + COL_WORKOUT_TIME + "=?",
+                new String[]{String.valueOf(trainerId), workoutType, date, time}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            long scheduleId = cursor.getLong(0);
+            cursor.close();
+            return scheduleId;
+        }
+        if (cursor != null) cursor.close();
+
+        ContentValues values = new ContentValues();
+        values.put(COL_SCHEDULE_TRAINER_ID, trainerId);
+        values.put(COL_WORKOUT_TYPE, workoutType);
+        values.put(COL_WORKOUT_DATE, date);
+        values.put(COL_WORKOUT_TIME, time);
+        values.put(COL_WORKOUT_DURATION, duration);
+        values.put(COL_MAX_CLIENTS, maxClients);
+        values.put(COL_CURRENT_CLIENTS, currentClients);
+        return db.insert(TABLE_SCHEDULE, null, values);
+    }
+
+    private void ensureBooking(SQLiteDatabase db, long scheduleId, long clientId, String status) {
+        Cursor cursor = db.query(TABLE_BOOKINGS, new String[]{COL_BOOKING_ID},
+                COL_BOOKING_SCHEDULE_ID + "=? AND " + COL_BOOKING_CLIENT_ID + "=?",
+                new String[]{String.valueOf(scheduleId), String.valueOf(clientId)}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            cursor.close();
+            return;
+        }
+        if (cursor != null) cursor.close();
+
+        ContentValues values = new ContentValues();
+        values.put(COL_BOOKING_SCHEDULE_ID, scheduleId);
+        values.put(COL_BOOKING_CLIENT_ID, clientId);
+        values.put(COL_BOOKING_DATE, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+        values.put(COL_BOOKING_STATUS, status);
+        db.insert(TABLE_BOOKINGS, null, values);
+    }
+
+    private long ensureWorkoutPlan(SQLiteDatabase db, long clientId, long trainerId, String notes) {
+        Cursor cursor = db.query(TABLE_WORKOUT_PLANS, new String[]{COL_PLAN_ID},
+                COL_PLAN_CLIENT_ID + "=? AND " + COL_PLAN_TRAINER_ID + "=?",
+                new String[]{String.valueOf(clientId), String.valueOf(trainerId)}, null, null, COL_PLAN_ID + " DESC");
+        if (cursor != null && cursor.moveToFirst()) {
+            long planId = cursor.getLong(0);
+            cursor.close();
+            return planId;
+        }
+        if (cursor != null) cursor.close();
+
+        ContentValues values = new ContentValues();
+        values.put(COL_PLAN_CLIENT_ID, clientId);
+        values.put(COL_PLAN_TRAINER_ID, trainerId);
+        values.put(COL_PLAN_ASSIGNED_DATE, new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
+        values.put(COL_PLAN_NOTES, notes);
+        return db.insert(TABLE_WORKOUT_PLANS, null, values);
+    }
+
+    private void ensurePlanExercise(SQLiteDatabase db, long planId, String exerciseName, int sets, int reps, float weight) {
+        Cursor cursor = db.query(TABLE_PLAN_EXERCISES, new String[]{COL_PE_ID},
+                COL_PE_PLAN_ID + "=? AND " + COL_PE_EXERCISE_NAME + "=?",
+                new String[]{String.valueOf(planId), exerciseName}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            cursor.close();
+            return;
+        }
+        if (cursor != null) cursor.close();
+
+        ContentValues values = new ContentValues();
+        values.put(COL_PE_PLAN_ID, planId);
+        values.put(COL_PE_EXERCISE_NAME, exerciseName);
+        values.put(COL_PE_SETS, sets);
+        values.put(COL_PE_REPS, reps);
+        values.put(COL_PE_WEIGHT, weight);
+        db.insert(TABLE_PLAN_EXERCISES, null, values);
+    }
+
+    private void ensureMeasurement(SQLiteDatabase db, long clientId, int dayOffset, float weight, float height, float biceps, float chest, float waist) {
+        String date = shiftDate(dayOffset);
+        Cursor cursor = db.query(TABLE_ANTHROPOMETRY, new String[]{COL_ANTHRO_ID},
+                COL_ANTHRO_CLIENT_ID + "=? AND " + COL_ANTHRO_DATE + "=?",
+                new String[]{String.valueOf(clientId), date}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            cursor.close();
+            return;
+        }
+        if (cursor != null) cursor.close();
+
+        ContentValues values = new ContentValues();
+        values.put(COL_ANTHRO_CLIENT_ID, clientId);
+        values.put(COL_ANTHRO_DATE, date);
+        values.put(COL_ANTHRO_WEIGHT, weight);
+        values.put(COL_ANTHRO_HEIGHT, height);
+        values.put(COL_ANTHRO_BICEPS, biceps);
+        values.put(COL_ANTHRO_CHEST, chest);
+        values.put(COL_ANTHRO_WAIST, waist);
+        db.insert(TABLE_ANTHROPOMETRY, null, values);
+    }
+
+    @NonNull
+    private String getMembershipTypeName(SQLiteDatabase db, long typeId) {
+        Cursor cursor = db.query(TABLE_MEMBERSHIP_TYPES, new String[]{COL_MT_NAME},
+                COL_MT_ID + "=?", new String[]{String.valueOf(typeId)}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            String value = cursor.getString(0);
+            cursor.close();
+            return value;
+        }
+        if (cursor != null) cursor.close();
+        return "Абонемент";
+    }
+
+    private String shiftDate(int dayOffset) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, dayOffset);
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
+    }
+
+    private void seedMembershipHistory(SQLiteDatabase db, long clientId) {
+        addMembershipRecord(db, clientId, 1, "2025-05-01", "2025-05-31", "expired", "2025-05-01");
+        addMembershipRecord(db, clientId, 2, "2025-06-01", "2025-11-27", "expired", "2025-06-01");
+        addMembershipRecord(db, clientId, 3, "2025-11-28", "2026-11-27", "active", "2025-11-28");
+        addMembershipRecord(db, clientId, 1, "2026-01-10", "2026-02-09", "expired", "2026-01-10");
+        addMembershipRecord(db, clientId, 2, "2026-03-01", "2026-08-27", "expired", "2026-03-01");
+    }
+
+    private void addMembershipRecord(SQLiteDatabase db, long clientId, long typeId, String startDate, String endDate, String status, String purchaseDate) {
+        Cursor type = db.query(TABLE_MEMBERSHIP_TYPES, null, COL_MT_ID + "=?",
+                new String[]{String.valueOf(typeId)}, null, null, null);
+        if (type == null || !type.moveToFirst()) {
+            if (type != null) type.close();
+            return;
+        }
+
+        ContentValues membership = new ContentValues();
+        membership.put(COL_MEM_CLIENT_ID, clientId);
+        membership.put(COL_MEM_TYPE_ID, typeId);
+        membership.put(COL_MEM_START_DATE, startDate);
+        membership.put(COL_MEM_END_DATE, endDate);
+        membership.put(COL_MEM_STATUS, status);
+        membership.put(COL_MEM_PURCHASE_DATE, purchaseDate);
+        membership.put(COL_MEM_TYPE_NAME, type.getString(type.getColumnIndexOrThrow(COL_MT_NAME)));
+        db.insert(TABLE_MEMBERSHIPS, null, membership);
+        type.close();
     }
 
     private void addTestWorkout(SQLiteDatabase db, long trainerId, String type, String date, String time, int duration, int max, int current) {
@@ -340,21 +764,48 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_WORKOUT_RESULTS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PLAN_EXERCISES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_WORKOUT_PLANS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CLIENT_ASSIGNMENTS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_BOOKINGS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_SCHEDULE);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRAINERS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_MEMBERSHIPS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_MEMBERSHIP_TYPES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ANTHROPOMETRY);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
-        onCreate(db);
+        if (oldVersion < 9) {
+            createMembershipApplicationsTable(db);
+        }
+        seedMembershipHistory(db);
+    }
+
+    private void createMembershipApplicationsTable(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_MEMBERSHIP_APPLICATIONS + " (" +
+                COL_MA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COL_MA_CLIENT_ID + " INTEGER, " +
+                COL_MA_TYPE_ID + " INTEGER, " +
+                COL_MA_PAYMENT_METHOD + " TEXT, " +
+                COL_MA_GOAL + " TEXT, " +
+                COL_MA_TIME_SLOT + " TEXT, " +
+                COL_MA_NOTE + " TEXT, " +
+                COL_MA_CREATED_AT + " TEXT, " +
+                COL_MA_STATUS + " TEXT)");
     }
 
     // ============ МЕТОДЫ ДЛЯ АУТЕНТИФИКАЦИИ ============
+
+    private void seedMembershipHistory(SQLiteDatabase db) {
+        Cursor client = db.query(TABLE_USERS, new String[]{COL_USER_ID}, COL_USERNAME + "=?",
+                new String[]{"client"}, null, null, null);
+        if (client == null || !client.moveToFirst()) {
+            if (client != null) client.close();
+            return;
+        }
+
+        long clientId = client.getLong(client.getColumnIndexOrThrow(COL_USER_ID));
+        client.close();
+
+        Cursor existing = db.query(TABLE_MEMBERSHIPS, new String[]{COL_MEM_ID}, COL_MEM_CLIENT_ID + "=?",
+                new String[]{String.valueOf(clientId)}, null, null, null);
+        if (existing != null && existing.getCount() >= 5) {
+            if (existing != null) existing.close();
+            return;
+        }
+        if (existing != null) existing.close();
+
+        seedMembershipHistory(db, clientId);
+    }
 
     public Cursor login(String username, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -575,6 +1026,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public boolean updateSchedule(long scheduleId, String workoutType, String date, String time, int duration, int maxClients) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
+        values.put(COL_WORKOUT_TYPE, workoutType);
+        values.put(COL_WORKOUT_DATE, date);
+        values.put(COL_WORKOUT_TIME, time);
+        values.put(COL_WORKOUT_DURATION, duration);
+        values.put(COL_MAX_CLIENTS, maxClients);
+        int updated = db.update(TABLE_SCHEDULE, values, COL_SCHEDULE_ID + "=?", new String[]{String.valueOf(scheduleId)});
+        return updated > 0;
+    }
+
+    public boolean updateSchedule(long scheduleId, long trainerId, String workoutType, String date, String time, int duration, int maxClients) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_SCHEDULE_TRAINER_ID, trainerId);
         values.put(COL_WORKOUT_TYPE, workoutType);
         values.put(COL_WORKOUT_DATE, date);
         values.put(COL_WORKOUT_TIME, time);
@@ -865,6 +1329,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public boolean saveMembershipApplication(long clientId, long typeId, String paymentMethod, String goal, String timeSlot, String note) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_MA_CLIENT_ID, clientId);
+        values.put(COL_MA_TYPE_ID, typeId);
+        values.put(COL_MA_PAYMENT_METHOD, paymentMethod);
+        values.put(COL_MA_GOAL, goal);
+        values.put(COL_MA_TIME_SLOT, timeSlot);
+        values.put(COL_MA_NOTE, note);
+        values.put(COL_MA_CREATED_AT, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+        values.put(COL_MA_STATUS, "confirmed");
+        return db.insert(TABLE_MEMBERSHIP_APPLICATIONS, null, values) != -1;
+    }
+
+    public Cursor getLatestMembershipApplication(long clientId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery(
+                "SELECT a.*, mt." + COL_MT_NAME + ", mt." + COL_MT_DESCRIPTION + ", mt." + COL_MT_DURATION_DAYS + ", mt." + COL_MT_PRICE +
+                        " FROM " + TABLE_MEMBERSHIP_APPLICATIONS + " a" +
+                        " LEFT JOIN " + TABLE_MEMBERSHIP_TYPES + " mt ON a." + COL_MA_TYPE_ID + " = mt." + COL_MT_ID +
+                        " WHERE a." + COL_MA_CLIENT_ID + " = ?" +
+                        " ORDER BY a." + COL_MA_CREATED_AT + " DESC, a." + COL_MA_ID + " DESC LIMIT 1",
+                new String[]{String.valueOf(clientId)});
     }
 
     public boolean createMembershipType(String name, String description, int durationDays, int price) {

@@ -78,6 +78,32 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+    <style name="TextAppearance.FitBook.DialogTitle">
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textColor">@color/fitbook_text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="TextAppearance.FitBook.DialogSubtitle">
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textColor">@color/fitbook_text_secondary</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.FitBook.DialogLabel">
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textColor">@color/fitbook_text_secondary</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+
+    <style name="Widget.FitBook.DarkDialogTextInputLayout" parent="Widget.FitBook.LoginTextInputLayout">
+        <item name="boxBackgroundColor">@color/fitbook_surface</item>
+        <item name="boxStrokeColor">@color/fitbook_stroke</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+    </style>
+
     <style name="ShapeAppearance.FitBook.DashboardCard" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">24dp</item>

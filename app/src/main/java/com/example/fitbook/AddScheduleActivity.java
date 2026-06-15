@@ -2,13 +2,13 @@ package com.example.fitbook;
 
 import android.database.Cursor;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ public class AddScheduleActivity extends AppCompatActivity {
     private Spinner spinnerTrainer;
     private TextInputEditText etWorkoutType;
     private TextInputEditText etDate;
-    private TextInputEditText etTime;
+    private MaterialAutoCompleteTextView etTime;
     private TextInputEditText etDuration;
     private TextInputEditText etMaxClients;
     private final ArrayList<Long> trainerIds = new ArrayList<>();
@@ -40,6 +40,8 @@ public class AddScheduleActivity extends AppCompatActivity {
         MaterialButton btnSave = findViewById(R.id.btnSave);
         MaterialButton btnCancel = findViewById(R.id.btnCancel);
 
+        UiFormUtils.attachDatePicker(this, etDate);
+        UiFormUtils.attachQuarterHourTimePicker(this, etTime);
         loadTrainers();
         btnSave.setOnClickListener(v -> saveSchedule());
         btnCancel.setOnClickListener(v -> finish());
@@ -62,9 +64,7 @@ public class AddScheduleActivity extends AppCompatActivity {
             trainerNames.add("Нет тренеров");
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, trainerNames);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerTrainer.setAdapter(adapter);
+        UiFormUtils.attachDarkSpinner(this, spinnerTrainer, trainerNames);
     }
 
     private void saveSchedule() {
@@ -98,7 +98,7 @@ public class AddScheduleActivity extends AppCompatActivity {
         }
     }
 
-    private String getText(TextInputEditText editText) {
+    private String getText(android.widget.TextView editText) {
         return editText.getText() == null ? "" : editText.getText().toString().trim();
     }
 }

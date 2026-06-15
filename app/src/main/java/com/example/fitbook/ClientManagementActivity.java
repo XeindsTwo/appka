@@ -1,13 +1,14 @@
 package com.example.fitbook;
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -26,19 +28,20 @@ import java.util.Locale;
 public class ClientManagementActivity extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
-    private final ArrayList<ClientItem> allClientItems = new ArrayList<>();
-    private final ArrayList<ClientItem> visibleClientItems = new ArrayList<>();
-    private final ArrayList<String> visibleRows = new ArrayList<>();
-    private final ArrayList<Long> visibleIds = new ArrayList<>();
+    private final ArrayList<ClientItem> allItems = new ArrayList<>();
+    private final ArrayList<ClientItem> visibleItems = new ArrayList<>();
     private final ArrayList<String> trainerFilterNames = new ArrayList<>();
     private final ArrayList<String> membershipFilterNames = new ArrayList<>();
-    private ArrayAdapter<String> adapter;
+    private ClientListAdapter adapter;
     private ArrayAdapter<String> trainerAdapter;
     private ArrayAdapter<String> membershipAdapter;
     private EditText etSearch;
     private Spinner spinnerTrainer;
     private Spinner spinnerMembership;
     private ListView listView;
+    private TextView tvTotalClients;
+    private TextView tvClientsWithTrainer;
+    private TextView tvActiveMembershipClients;
 
     private static class ClientItem {
         long id;
@@ -61,8 +64,11 @@ public class ClientManagementActivity extends AppCompatActivity {
         spinnerTrainer = findViewById(R.id.spinnerTrainer);
         spinnerMembership = findViewById(R.id.spinnerMembership);
         listView = findViewById(R.id.listView);
+        tvTotalClients = findViewById(R.id.tvTotalClients);
+        tvClientsWithTrainer = findViewById(R.id.tvClientsWithTrainer);
+        tvActiveMembershipClients = findViewById(R.id.tvActiveMembershipClients);
 
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, visibleRows);
+        adapter = new ClientListAdapter();
         listView.setAdapter(adapter);
 
         findViewById(R.id.btnRegisterClient).setOnClickListener(v -> showRegisterClientDialog());
@@ -70,38 +76,30 @@ public class ClientManagementActivity extends AppCompatActivity {
         trainerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, trainerFilterNames);
         trainerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerTrainer.setAdapter(trainerAdapter);
-        spinnerTrainer.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) { renderClients(); }
-            @Override public void onNothingSelected(AdapterView<?> parent) { }
-        });
+        spinnerTrainer.setOnItemSelectedListener(new SimpleItemSelectedListener(this::renderItems));
 
         membershipAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, membershipFilterNames);
         membershipAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerMembership.setAdapter(membershipAdapter);
-        spinnerMembership.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) { renderClients(); }
-            @Override public void onNothingSelected(AdapterView<?> parent) { }
-        });
+        spinnerMembership.setOnItemSelectedListener(new SimpleItemSelectedListener(this::renderItems));
 
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { renderClients(); }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { renderItems(); }
             @Override public void afterTextChanged(Editable s) {}
         });
 
-        listView.setOnItemClickListener((parent, view, position, id) -> showClientActions(position));
-
-        loadClients();
+        loadItems();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        loadClients();
+        loadItems();
     }
 
-    private void loadClients() {
-        allClientItems.clear();
+    private void loadItems() {
+        allItems.clear();
         Cursor clients = dbHelper.getAllClientsWithTrainer();
         if (clients != null) {
             while (clients.moveToNext()) {
@@ -114,27 +112,46 @@ public class ClientManagementActivity extends AppCompatActivity {
                 item.trainerName = clients.getString(clients.getColumnIndexOrThrow("trainer_name"));
                 item.membershipName = clients.getString(clients.getColumnIndexOrThrow("membership_name"));
                 item.membershipStatus = clients.getString(clients.getColumnIndexOrThrow("membership_status"));
-                allClientItems.add(item);
+                allItems.add(item);
             }
             clients.close();
         }
         refreshFilters();
-        renderClients();
+        updateSummary();
+        renderItems();
+    }
+
+    private void updateSummary() {
+        int totalClients = allItems.size();
+        int withTrainer = 0;
+        int activeMemberships = 0;
+        for (ClientItem item : allItems) {
+            if (item.trainerName != null && !item.trainerName.isEmpty() && !"Не назначен".equals(item.trainerName)) {
+                withTrainer++;
+            }
+            if ("active".equals(item.membershipStatus)) {
+                activeMemberships++;
+            }
+        }
+        tvTotalClients.setText(String.valueOf(totalClients));
+        tvClientsWithTrainer.setText(String.valueOf(withTrainer));
+        tvActiveMembershipClients.setText(String.valueOf(activeMemberships));
     }
 
     private void refreshFilters() {
         if (trainerFilterNames.isEmpty()) {
             trainerFilterNames.add("Все тренеры");
-            ArrayList<String> trainerNames = new ArrayList<>();
-            for (ClientItem item : allClientItems) {
-                if (item.trainerName != null && !trainerNames.contains(item.trainerName) && !"Не назначен".equals(item.trainerName)) {
-                    trainerNames.add(item.trainerName);
-                }
-            }
-            trainerNames.sort(String::compareToIgnoreCase);
-            trainerFilterNames.addAll(trainerNames);
-            trainerAdapter.notifyDataSetChanged();
         }
+        trainerFilterNames.subList(1, trainerFilterNames.size()).clear();
+        ArrayList<String> trainerNames = new ArrayList<>();
+        for (ClientItem item : allItems) {
+            if (item.trainerName != null && !item.trainerName.isEmpty() && !"Не назначен".equals(item.trainerName) && !trainerNames.contains(item.trainerName)) {
+                trainerNames.add(item.trainerName);
+            }
+        }
+        trainerNames.sort(String::compareToIgnoreCase);
+        trainerFilterNames.addAll(trainerNames);
+        trainerAdapter.notifyDataSetChanged();
 
         if (membershipFilterNames.isEmpty()) {
             membershipFilterNames.add("Все статусы");
@@ -145,75 +162,48 @@ public class ClientManagementActivity extends AppCompatActivity {
         }
     }
 
-    private void renderClients() {
-        visibleClientItems.clear();
-        visibleRows.clear();
-        visibleIds.clear();
-
+    private void renderItems() {
+        visibleItems.clear();
         String query = textOf(etSearch).toLowerCase(Locale.ROOT);
         String selectedTrainer = selectedOf(spinnerTrainer);
         String selectedMembership = selectedOf(spinnerMembership);
 
-        for (ClientItem item : allClientItems) {
-            String searchBlob = (safe(item.username) + " " + safe(item.fullName) + " " + safe(item.phone) + " " + safe(item.email) + " " + safe(item.trainerName)).toLowerCase(Locale.ROOT);
-            boolean searchMatches = query.isEmpty() || searchBlob.contains(query);
-
-            boolean trainerMatches = "Все тренеры".equals(selectedTrainer)
-                    || selectedTrainer.equals(item.trainerName);
-
+        for (ClientItem item : allItems) {
+            String blob = (safe(item.username) + " " + safe(item.fullName) + " " + safe(item.phone) + " " + safe(item.email) + " " + safe(item.trainerName)).toLowerCase(Locale.ROOT);
+            boolean searchMatches = query.isEmpty() || blob.contains(query);
+            boolean trainerMatches = "Все тренеры".equals(selectedTrainer) || selectedTrainer.equals(item.trainerName);
             boolean membershipMatches = "Все статусы".equals(selectedMembership)
                     || ("Активный".equals(selectedMembership) && "active".equals(item.membershipStatus))
                     || ("Истекший".equals(selectedMembership) && "expired".equals(item.membershipStatus))
                     || ("Без абонемента".equals(selectedMembership) && ("none".equals(item.membershipStatus) || item.membershipStatus == null));
 
             if (searchMatches && trainerMatches && membershipMatches) {
-                visibleClientItems.add(item);
-                visibleIds.add(item.id);
-                visibleRows.add(item.fullName +
-                        "\n@" + item.username +
-                        "\nТренер: " + safe(item.trainerName) +
-                        "\nАбонемент: " + safe(item.membershipName) + " • " + statusLabel(item.membershipStatus));
+                visibleItems.add(item);
             }
         }
 
-        if (visibleRows.isEmpty()) {
-            visibleRows.add("Клиенты не найдены");
-        }
         adapter.notifyDataSetChanged();
     }
 
-    private void showClientActions(int position) {
-        if (position >= visibleClientItems.size()) return;
-        ClientItem item = visibleClientItems.get(position);
-        String[] actions = {"Просмотр", "Редактировать", "Назначить тренера", "Удалить"};
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(item.fullName)
-                .setItems(actions, (dialog, which) -> {
-                    if (which == 0) {
-                        showClientInfo(item);
-                    } else if (which == 1) {
-                        showEditClientDialog(item);
-                    } else if (which == 2) {
-                        showAssignTrainerDialog(item);
-                    } else if (which == 3) {
-                        confirmDeleteClient(item);
-                    }
-                })
-                .show();
-    }
+    private void showClientDetails(ClientItem item) {
+        View view = getLayoutInflater().inflate(R.layout.dialog_client_details, null);
+        TextView tvName = view.findViewById(R.id.tvName);
+        TextView tvUsername = view.findViewById(R.id.tvUsername);
+        TextView tvPhone = view.findViewById(R.id.tvPhone);
+        TextView tvEmail = view.findViewById(R.id.tvEmail);
+        TextView tvTrainer = view.findViewById(R.id.tvTrainer);
+        TextView tvMembership = view.findViewById(R.id.tvMembership);
 
-    private void showClientInfo(ClientItem item) {
-        new MaterialAlertDialogBuilder(this)
-                .setTitle("Карточка клиента")
-                .setMessage("Логин: " + item.username +
-                        "\nФИО: " + item.fullName +
-                        "\nТелефон: " + item.phone +
-                        "\nEmail: " + item.email +
-                        "\nТренер: " + safe(item.trainerName) +
-                        "\nАбонемент: " + safe(item.membershipName) +
-                        "\nСтатус: " + statusLabel(item.membershipStatus))
-                .setPositiveButton("ОК", null)
-                .show();
+        tvName.setText(item.fullName);
+        tvUsername.setText("Логин: " + safe(item.username));
+        tvPhone.setText("Телефон: " + safe(item.phone));
+        tvEmail.setText("Email: " + safe(item.email));
+        tvTrainer.setText("Тренер: " + safe(item.trainerName));
+        tvMembership.setText("Абонемент: " + safe(item.membershipName) + " • " + statusLabel(item.membershipStatus));
+
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this).setView(view).create();
+        view.findViewById(R.id.btnClose).setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
     private void showEditClientDialog(ClientItem item) {
@@ -230,6 +220,7 @@ public class ClientManagementActivity extends AppCompatActivity {
         etEmail.setText(item.email);
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setTitle("Редактирование клиента")
                 .setView(view)
                 .setPositiveButton("Сохранить", null)
                 .setNegativeButton("Отмена", (d, w) -> d.dismiss())
@@ -249,7 +240,7 @@ public class ClientManagementActivity extends AppCompatActivity {
             Toast.makeText(this, success ? "Клиент обновлён" : "Не удалось обновить клиента", Toast.LENGTH_SHORT).show();
             if (success) {
                 dialog.dismiss();
-                loadClients();
+                loadItems();
             }
         }));
         dialog.show();
@@ -273,7 +264,6 @@ public class ClientManagementActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, trainerNames);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
-
         int selectedIndex = 0;
         if (item.trainerName != null) {
             int index = trainerNames.indexOf(item.trainerName);
@@ -293,7 +283,7 @@ public class ClientManagementActivity extends AppCompatActivity {
                         dbHelper.assignTrainerToClient(item.id, trainerIds.get(index), "");
                         Toast.makeText(this, "Тренер назначен", Toast.LENGTH_SHORT).show();
                     }
-                    loadClients();
+                    loadItems();
                 })
                 .setNegativeButton("Отмена", null)
                 .show();
@@ -302,11 +292,11 @@ public class ClientManagementActivity extends AppCompatActivity {
     private void confirmDeleteClient(ClientItem item) {
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Удалить клиента?")
-                .setMessage("Удалить клиента " + item.fullName + " со всеми связанными данными?")
+                .setMessage("Вы точно хотите удалить " + item.fullName + "?")
                 .setPositiveButton("Удалить", (dialog, which) -> {
                     boolean success = dbHelper.deleteClient(item.id);
                     Toast.makeText(this, success ? "Клиент удалён" : "Не удалось удалить клиента", Toast.LENGTH_SHORT).show();
-                    if (success) loadClients();
+                    if (success) loadItems();
                 })
                 .setNegativeButton("Отмена", null)
                 .show();
@@ -321,6 +311,7 @@ public class ClientManagementActivity extends AppCompatActivity {
         TextInputEditText etEmail = view.findViewById(R.id.etEmail);
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setTitle("Регистрация клиента")
                 .setView(view)
                 .setPositiveButton("Создать", null)
                 .setNegativeButton("Отмена", (d, w) -> d.dismiss())
@@ -340,7 +331,7 @@ public class ClientManagementActivity extends AppCompatActivity {
             Toast.makeText(this, success ? "Клиент создан" : "Логин уже существует", Toast.LENGTH_SHORT).show();
             if (success) {
                 dialog.dismiss();
-                loadClients();
+                loadItems();
             }
         }));
         dialog.show();
@@ -362,5 +353,63 @@ public class ClientManagementActivity extends AppCompatActivity {
         if ("active".equals(status)) return "Активный";
         if ("expired".equals(status)) return "Истекший";
         return "Без абонемента";
+    }
+
+    private class ClientListAdapter extends BaseAdapter {
+        @Override public int getCount() { return visibleItems.size(); }
+        @Override public Object getItem(int position) { return visibleItems.get(position); }
+        @Override public long getItemId(int position) { return visibleItems.get(position).id; }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            Holder holder;
+            if (convertView == null) {
+                convertView = LayoutInflater.from(ClientManagementActivity.this).inflate(R.layout.item_client_management, parent, false);
+                holder = new Holder(convertView);
+                convertView.setTag(holder);
+            } else {
+                holder = (Holder) convertView.getTag();
+            }
+            holder.bind(visibleItems.get(position));
+            return convertView;
+        }
+    }
+
+    private class Holder {
+        private final View root;
+        private final TextView tvName;
+        private final TextView tvUsername;
+        private final TextView tvMeta;
+        private final MaterialButton btnEdit;
+        private final MaterialButton btnDelete;
+
+        Holder(View root) {
+            this.root = root;
+            tvName = root.findViewById(R.id.tvName);
+            tvUsername = root.findViewById(R.id.tvUsername);
+            tvMeta = root.findViewById(R.id.tvMeta);
+            btnEdit = root.findViewById(R.id.btnEdit);
+            btnDelete = root.findViewById(R.id.btnDelete);
+        }
+
+        void bind(ClientItem item) {
+            tvName.setText(item.fullName);
+            tvUsername.setText("@" + safe(item.username));
+            tvMeta.setText("Тренер: " + safe(item.trainerName) + " • Абонемент: " + safe(item.membershipName) + " • " + statusLabel(item.membershipStatus));
+            root.setOnClickListener(v -> showClientDetails(item));
+            btnEdit.setOnClickListener(v -> showEditClientDialog(item));
+            btnDelete.setOnClickListener(v -> confirmDeleteClient(item));
+        }
+    }
+
+    private static class SimpleItemSelectedListener implements android.widget.AdapterView.OnItemSelectedListener {
+        private final Runnable onSelected;
+
+        SimpleItemSelectedListener(Runnable onSelected) {
+            this.onSelected = onSelected;
+        }
+
+        @Override public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) { onSelected.run(); }
+        @Override public void onNothingSelected(android.widget.AdapterView<?> parent) {}
     }
 }

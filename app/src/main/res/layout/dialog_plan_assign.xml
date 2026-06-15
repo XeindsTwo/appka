@@ -1,21 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="wrap_content"
-    android:orientation="vertical" android:padding="20dp">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true">
 
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:text="📋 Назначение плана" android:textSize="18sp"
-        android:textStyle="bold" android:textColor="#2196F3"
-        android:layout_marginBottom="16dp" android:gravity="center"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/fitbook_surface"
+        android:orientation="vertical"
+        android:padding="20dp">
 
-    <EditText android:id="@+id/etNotes" android:layout_width="match_parent"
-        android:layout_height="120dp" android:hint="Заметки/Примечания"
-        android:inputType="textMultiLine" android:gravity="top"
-        android:padding="12dp" android:background="@android:drawable/editbox_background"
-        android:layout_marginBottom="12dp"/>
+        <TextView
+            style="@style/TextAppearance.FitBook.DialogTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Назначение плана" />
 
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:text="⚠️ Нажмите 'Далее' чтобы добавить упражнения"
-        android:textSize="12sp" android:textColor="#FF9800"
-        android:layout_marginTop="8dp" android:gravity="center"/>
-</LinearLayout>
+        <TextView
+            style="@style/TextAppearance.FitBook.DialogSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="Добавьте заметки и продолжите настройку" />
+
+        <TextView
+            style="@style/TextAppearance.FitBook.DialogLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="6dp"
+            android:text="Заметки" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.FitBook.DarkDialogTextInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:hintEnabled="false">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNotes"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:gravity="top"
+                android:hint="Введите заметки/примечания"
+                android:inputType="textMultiLine"
+                android:minLines="4"
+                android:padding="16dp"
+                android:textColor="@color/fitbook_text_primary"
+                android:textColorHint="@color/fitbook_text_hint" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            style="@style/TextAppearance.FitBook.DialogSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:text="Нажмите «Далее», чтобы добавить упражнения" />
+    </LinearLayout>
+</ScrollView>

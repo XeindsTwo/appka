@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
 import java.util.ArrayList;
 
@@ -99,11 +100,7 @@ public class AdminActivity extends AppCompatActivity {
         findViewById(R.id.btnViewTrainers).setOnClickListener(v -> {
             startActivity(new Intent(this, TrainerManagementActivity.class));
         });
-        findViewById(R.id.btnViewSchedule).setOnClickListener(v -> {
-            currentMode = "schedule";
-            btnAddMembership.setVisibility(View.GONE);
-            loadSchedule();
-        });
+        findViewById(R.id.btnViewSchedule).setOnClickListener(v -> startActivity(new Intent(this, ScheduleManagementActivity.class)));
         findViewById(R.id.btnMembershipTypes).setOnClickListener(v -> startActivity(new Intent(this, MembershipManagementActivity.class)));
         findViewById(R.id.btnRegisterClient).setOnClickListener(v -> showRegisterClientDialog());
         btnAddMembership.setOnClickListener(v -> showAddMembershipDialog());
@@ -141,19 +138,13 @@ public class AdminActivity extends AppCompatActivity {
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_schedule) {
-                tvSectionTitle.setText("Управление клубом");
-                currentMode = "schedule";
-                btnAddMembership.setVisibility(View.GONE);
-                loadSchedule();
+                startActivity(new Intent(this, ScheduleManagementActivity.class));
                 return true;
             } else if (itemId == R.id.nav_clients) {
                 startActivity(new Intent(this, ClientManagementActivity.class));
                 return true;
             } else if (itemId == R.id.nav_trainers) {
-                tvSectionTitle.setText("Управление клубом");
-                currentMode = "trainers";
-                btnAddMembership.setVisibility(View.GONE);
-                loadTrainers();
+                startActivity(new Intent(this, TrainerManagementActivity.class));
                 return true;
             } else if (itemId == R.id.nav_memberships) {
                 startActivity(new Intent(this, MembershipManagementActivity.class));
@@ -383,15 +374,19 @@ public class AdminActivity extends AppCompatActivity {
     }
 
     private void showAddScheduleDialog() {
-        AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
         View view = getLayoutInflater().inflate(R.layout.dialog_schedule_add, null);
+        androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setView(view)
+                .create();
 
         Spinner spinnerTrainer = view.findViewById(R.id.spinnerTrainer);
         EditText etWorkoutType = view.findViewById(R.id.etWorkoutType);
         EditText etDate = view.findViewById(R.id.etDate);
-        EditText etTime = view.findViewById(R.id.etTime);
+        com.google.android.material.textfield.MaterialAutoCompleteTextView etTime = view.findViewById(R.id.etTime);
         EditText etDuration = view.findViewById(R.id.etDuration);
         EditText etMaxClients = view.findViewById(R.id.etMaxClients);
+        View btnSave = view.findViewById(R.id.btnSave);
+        View btnCancel = view.findViewById(R.id.btnCancel);
 
         Cursor trainers = dbHelper.getAllTrainers();
         ArrayList<String> trainerNames = new ArrayList<>();
@@ -402,32 +397,34 @@ public class AdminActivity extends AppCompatActivity {
         }
         trainers.close();
 
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, trainerNames);
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerTrainer.setAdapter(spinnerAdapter);
+        UiFormUtils.attachDarkSpinner(this, spinnerTrainer, trainerNames);
+        UiFormUtils.attachDatePicker(this, etDate);
+        UiFormUtils.attachQuarterHourTimePicker(this, etTime);
 
-        builder.setTitle("Р В Р’В Р Р†Р вЂљРЎСљР В Р’В Р РЋРІР‚СћР В Р’В Р вЂ™Р’В±Р В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ° Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚СњР В Р Р‹Р РЋРІР‚Сљ").setView(view)
-                .setPositiveButton("Р В Р’В Р Р†Р вЂљРЎСљР В Р’В Р РЋРІР‚СћР В Р’В Р вЂ™Р’В±Р В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ°", (dialog, which) -> {
-                    try {
-                        int pos = spinnerTrainer.getSelectedItemPosition();
-                        boolean success = dbHelper.addSchedule(
-                                trainerIds.get(pos),
-                                etWorkoutType.getText().toString(),
-                                etDate.getText().toString(),
-                                etTime.getText().toString(),
-                                Integer.parseInt(etDuration.getText().toString()),
-                                Integer.parseInt(etMaxClients.getText().toString())
-                        );
-                        Toast.makeText(this, success ? "Р В Р’В Р РЋРЎвЂєР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В° Р В Р’В Р СћРІР‚ВР В Р’В Р РЋРІР‚СћР В Р’В Р вЂ™Р’В±Р В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’В°" : "Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†РІР‚С™Р’В¬Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В°", Toast.LENGTH_SHORT).show();
-                        if (success) {
-                            currentMode = "schedule";
-                            loadSchedule();
-                        }
-                    } catch (Exception e) {
-                        Toast.makeText(this, "Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†РІР‚С™Р’В¬Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В°: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .setNegativeButton("Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’В°", null).show();
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnSave.setOnClickListener(v -> {
+            try {
+                int pos = spinnerTrainer.getSelectedItemPosition();
+                boolean success = dbHelper.addSchedule(
+                        trainerIds.get(pos),
+                        etWorkoutType.getText() == null ? "" : etWorkoutType.getText().toString().trim(),
+                        etDate.getText() == null ? "" : etDate.getText().toString().trim(),
+                        etTime.getText() == null ? "" : etTime.getText().toString().trim(),
+                        Integer.parseInt(etDuration.getText() == null ? "0" : etDuration.getText().toString().trim()),
+                        Integer.parseInt(etMaxClients.getText() == null ? "0" : etMaxClients.getText().toString().trim())
+                );
+                Toast.makeText(this, success ? "Тренировка создана" : "Не удалось создать тренировку", Toast.LENGTH_SHORT).show();
+                if (success) {
+                    currentMode = "schedule";
+                    loadSchedule();
+                    dialog.dismiss();
+                }
+            } catch (Exception e) {
+                Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
     }
 
     private void showRegisterClientDialog() {
@@ -854,6 +851,7 @@ public class AdminActivity extends AppCompatActivity {
         Cursor schedule = dbHelper.getScheduleById(scheduleId);
         String workoutType = "", date = "", time = "";
         int duration = 0, maxClients = 0;
+        long trainerId = -1L;
 
         if (schedule != null && schedule.moveToFirst()) {
             workoutType = schedule.getString(schedule.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_TYPE));
@@ -861,17 +859,42 @@ public class AdminActivity extends AppCompatActivity {
             time = schedule.getString(schedule.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_TIME));
             duration = schedule.getInt(schedule.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_DURATION));
             maxClients = schedule.getInt(schedule.getColumnIndexOrThrow(DatabaseHelper.COL_MAX_CLIENTS));
+            trainerId = schedule.getLong(schedule.getColumnIndexOrThrow(DatabaseHelper.COL_SCHEDULE_TRAINER_ID));
             schedule.close();
         }
 
-        AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
         View view = getLayoutInflater().inflate(R.layout.dialog_schedule_edit, null);
+        androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setView(view)
+                .create();
 
+        Spinner spinnerTrainer = view.findViewById(R.id.spinnerTrainer);
         EditText etWorkoutType = view.findViewById(R.id.etWorkoutType);
         EditText etDate = view.findViewById(R.id.etDate);
-        EditText etTime = view.findViewById(R.id.etTime);
+        com.google.android.material.textfield.MaterialAutoCompleteTextView etTime = view.findViewById(R.id.etTime);
         EditText etDuration = view.findViewById(R.id.etDuration);
         EditText etMaxClients = view.findViewById(R.id.etMaxClients);
+        View btnSave = view.findViewById(R.id.btnSave);
+        View btnCancel = view.findViewById(R.id.btnCancel);
+
+        Cursor trainers = dbHelper.getAllTrainers();
+        ArrayList<String> trainerNames = new ArrayList<>();
+        ArrayList<Long> trainerIds = new ArrayList<>();
+        int selectedIndex = 0;
+        while (trainers.moveToNext()) {
+            long currentTrainerId = trainers.getLong(trainers.getColumnIndexOrThrow(DatabaseHelper.COL_USER_ID));
+            trainerIds.add(currentTrainerId);
+            trainerNames.add(trainers.getString(trainers.getColumnIndexOrThrow(DatabaseHelper.COL_FULL_NAME)));
+            if (trainerId == currentTrainerId) {
+                selectedIndex = trainerIds.size() - 1;
+            }
+        }
+        trainers.close();
+
+        UiFormUtils.attachDarkSpinner(this, spinnerTrainer, trainerNames);
+        spinnerTrainer.setSelection(Math.max(0, selectedIndex));
+        UiFormUtils.attachDatePicker(this, etDate);
+        UiFormUtils.attachQuarterHourTimePicker(this, etTime);
 
         etWorkoutType.setText(workoutType);
         etDate.setText(date);
@@ -879,24 +902,29 @@ public class AdminActivity extends AppCompatActivity {
         etDuration.setText(String.valueOf(duration));
         etMaxClients.setText(String.valueOf(maxClients));
 
-        builder.setTitle("Р В Р вЂ Р РЋРЎв„ўР В Р РЏР В РЎвЂ”Р РЋРІР‚ВР В Р РЏ Р В Р’В Р вЂ™Р’В Р В Р’В Р вЂ™Р’ВµР В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р РЋРІР‚СњР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚ВР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’В°Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ° Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚СњР В Р Р‹Р РЋРІР‚Сљ").setView(view)
-                .setPositiveButton("Р В Р’В Р В Р вЂ№Р В Р’В Р РЋРІР‚СћР В Р Р‹Р Р†Р вЂљР’В¦Р В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ°", (dialog, which) -> {
-                    try {
-                        boolean success = dbHelper.updateSchedule(
-                                scheduleId,
-                                etWorkoutType.getText().toString(),
-                                etDate.getText().toString(),
-                                etTime.getText().toString(),
-                                Integer.parseInt(etDuration.getText().toString()),
-                                Integer.parseInt(etMaxClients.getText().toString())
-                        );
-                        Toast.makeText(this, success ? "Р В Р’В Р РЋРЎвЂєР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В° Р В Р’В Р РЋРІР‚СћР В Р’В Р вЂ™Р’В±Р В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’В°" : "Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†РІР‚С™Р’В¬Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В°", Toast.LENGTH_SHORT).show();
-                        loadSchedule();
-                    } catch (Exception e) {
-                        Toast.makeText(this, "Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†РІР‚С™Р’В¬Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В°: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .setNegativeButton("Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’В°", null).show();
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnSave.setOnClickListener(v -> {
+            try {
+                int pos = spinnerTrainer.getSelectedItemPosition();
+                boolean success = dbHelper.updateSchedule(
+                        scheduleId,
+                        etWorkoutType.getText() == null ? "" : etWorkoutType.getText().toString().trim(),
+                        etDate.getText() == null ? "" : etDate.getText().toString().trim(),
+                        etTime.getText() == null ? "" : etTime.getText().toString().trim(),
+                        Integer.parseInt(etDuration.getText() == null ? "0" : etDuration.getText().toString().trim()),
+                        Integer.parseInt(etMaxClients.getText() == null ? "0" : etMaxClients.getText().toString().trim())
+                );
+                Toast.makeText(this, success ? "Тренировка обновлена" : "Не удалось сохранить изменения", Toast.LENGTH_SHORT).show();
+                if (success) {
+                    loadSchedule();
+                    dialog.dismiss();
+                }
+            } catch (Exception e) {
+                Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
     }
 
     private void showEditMembershipDialog(final long typeId) {

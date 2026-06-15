@@ -58,6 +58,10 @@
             android:name=".MembershipManagementActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ScheduleManagementActivity"
+            android:exported="false" />
+
         <!-- Trainer Activity -->
         <activity
             android:name=".TrainerActivity"
@@ -66,6 +70,14 @@
         <!-- Client Activity -->
         <activity
             android:name=".ClientActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".MembershipsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".MembershipHistoryActivity"
             android:exported="false" />
 
         <activity

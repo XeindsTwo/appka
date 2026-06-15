@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">FitBook</string>
+
     <string name="login_subtitle">Фитнес-клуб в вашем телефоне</string>
     <string name="login_title">Вход в аккаунт</string>
     <string name="login_hint">Логин</string>
@@ -11,20 +12,23 @@
     <string name="login_button">Войти</string>
     <string name="register_button">Создать аккаунт</string>
     <string name="register_title">Регистрация аккаунта</string>
-    <string name="register_subtitle">Фитнес-клуб в вашем телефонеФитнес-клуб в вашем телефоне</string>
+    <string name="register_subtitle">Фитнес-клуб в вашем телефоне</string>
     <string name="register_form_hint">Заполните данные для создания аккаунта</string>
     <string name="register_client_title">Регистрация аккаунта</string>
     <string name="full_name_hint">ФИО</string>
     <string name="phone_hint">Телефон</string>
     <string name="create_account_button">Зарегистрироваться</string>
     <string name="back_to_login_button">Войти в аккаунт</string>
+
     <string name="splash_logo_mark">FB</string>
     <string name="splash_subtitle">Фитнес-клуб в вашем телефоне</string>
     <string name="splash_loading">Подготавливаем тренировочное пространство…</string>
+
     <string name="login_empty_fields_error">Заполните логин и пароль</string>
     <string name="login_invalid_credentials_error">Неверный логин или пароль</string>
     <string name="login_error_prefix">Ошибка входа: %1$s</string>
     <string name="login_welcome_message">Добро пожаловать, %1$s!</string>
+
     <string name="client_hello">Привет,</string>
     <string name="client_name_placeholder">Username</string>
     <string name="client_active_membership_label">Активный абонемент</string>
@@ -40,6 +44,30 @@
     <string name="client_body_subtitle">Отслеживай форму, вес и изменения прогресса</string>
     <string name="client_progress_title">Прогресс</string>
     <string name="client_membership_title">Абонемент</string>
+    <string name="client_membership_open">Открыть абонементы</string>
+    <string name="client_membership_payment">Оплата</string>
+    <string name="client_membership_goal">Цель</string>
+    <string name="client_membership_time_slot">Время</string>
+    <string name="client_membership_history_title">История абонементов</string>
+    <string name="client_membership_catalog_title">Каталог абонементов</string>
+    <string name="client_membership_catalog_subtitle">Выбери план и задай параметры оформления</string>
+    <string name="client_membership_current_title">Текущий абонемент</string>
+    <string name="client_membership_empty">Ещё нет активного абонемента</string>
+    <string name="client_membership_none">Без абонемента</string>
+    <string name="client_membership_choose">Выбрать план</string>
+    <string name="client_membership_dialog_title">Оформление абонемента</string>
+    <string name="client_membership_dialog_subtitle">Мы сохраним выбор и параметры для тренера и аналитики</string>
+    <string name="client_membership_payment_prompt">Выберите способ оплаты</string>
+    <string name="client_membership_goal_prompt">Цель занятий</string>
+    <string name="client_membership_time_prompt">Предпочтительное время тренировок</string>
+    <string name="client_membership_note_prompt">Комментарий</string>
+    <string name="client_membership_note_hint">Комментарий для тренера</string>
+    <string name="client_membership_confirm">Оформить</string>
+    <string name="client_membership_cancel">Отмена</string>
+    <string name="client_membership_saved">Выбор абонемента сохранён</string>
+    <string name="client_membership_purchase_ok">Абонемент активирован</string>
+    <string name="client_membership_purchase_error">Не удалось оформить абонемент</string>
+
     <string name="client_recommended_title">Рекомендуемые</string>
     <string name="client_contacts_title">Контакты клуба</string>
     <string name="client_contacts_subtitle">Адрес, связь и карта фитнес-клуба</string>
@@ -52,8 +80,9 @@
     <string name="client_contacts_phone">+7 (861) 000-00-00</string>
     <string name="client_contacts_vk_url">https://vk.com/</string>
     <string name="client_contacts_max_url">https://max.ru/</string>
-    <string name="client_contacts_chat_url">https://t.me/</string>
+    <string name="client_contacts_chat_url">https://vk.com/</string>
     <string name="client_contacts_map_url">https://www.google.com/maps?q=%D0%9A%D0%A0%D0%9A%20%D0%9E%D0%BB%D0%B8%D0%BC%D0%BF%D0%B8%D0%BA,%20%D1%83%D0%BB.%20%D0%9C%D0%B8%D1%80%D0%B0,%2075,%20%D0%91%D0%B5%D0%BB%D0%BE%D1%80%D0%B5%D1%87%D0%B5%D0%BD%D1%81%D0%BA&amp;output=embed</string>
+
     <string name="dashboard_arrow">→</string>
     <string name="logout_button">Выйти</string>
     <string name="profile_logout_button">Выйти из аккаунта</string>
@@ -89,6 +118,7 @@
     <string name="profile_saved">Профиль обновлён</string>
     <string name="profile_save_error">Не удалось сохранить профиль</string>
     <string name="profile_name_required">Введите имя</string>
+
     <string name="admin_role_label">Администратор</string>
     <string name="admin_dashboard_title">Управление клубом</string>
     <string name="admin_add_trainer">Добавить тренера</string>
@@ -102,4 +132,20 @@
     <string name="admin_register_client">Регистрация клиента</string>
     <string name="admin_register_client_hint">Создать доступ для нового клиента</string>
     <string name="admin_add_membership">Добавить абонемент</string>
+
+    <string name="trainer_dashboard_title">Панель тренера</string>
+    <string name="trainer_role_label">Тренер</string>
+    <string name="trainer_schedule_icon">📅</string>
+    <string name="trainer_schedule_title">Мои тренировки</string>
+    <string name="trainer_clients_icon">👥</string>
+    <string name="trainer_clients_title">Мои клиенты</string>
+    <string name="trainer_plan_icon">📋</string>
+    <string name="trainer_plan_title">Назначение плана</string>
+    <string name="trainer_manage_title">Управление занятиями</string>
+    <string name="trainer_assign_plan_title">Назначить план для %1$s</string>
+    <string name="trainer_add_exercises_title">Добавить упражнения для %1$s</string>
+    <string name="trainer_logout_title">Выход</string>
+    <string name="trainer_logout_message">Вы точно хотите выйти?</string>
+    <string name="trainer_logout_positive">Да</string>
+    <string name="trainer_logout_negative">Отмена</string>
 </resources>

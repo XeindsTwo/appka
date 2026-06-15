@@ -25,7 +25,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Trainer Panel"
+                android:text="@string/trainer_dashboard_title"
                 android:fontFamily="sans-serif"
                 android:textColor="@color/fitbook_text_on_accent"
                 android:textSize="14sp"/>
@@ -34,7 +34,7 @@
                 android:id="@+id/tvTrainerName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Р В РЎС›Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В Р’ВµР РЋР вЂљ"
+                android:text="@string/trainer_role_label"
                 android:fontFamily="sans-serif"
                 android:textColor="@color/fitbook_text_on_accent"
                 android:textSize="22sp"
@@ -88,13 +88,13 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="РЎР‚РЎСџРІР‚СљРІР‚В¦"
+                    android:text="@string/trainer_schedule_icon"
                     android:textSize="24sp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Р В РЎС™Р В РЎвЂўР В РЎвЂ Р РЋРІР‚С™Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР вЂљР В РЎвЂўР В Р вЂ Р В РЎвЂќР В РЎвЂ"
+                    android:text="@string/trainer_schedule_title"
                     android:textSize="10sp"
                     android:textColor="#1A1A2E"
                     android:gravity="center"
@@ -117,13 +117,13 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="РЎР‚РЎСџРІР‚ВРўС’"
+                    android:text="@string/trainer_clients_icon"
                     android:textSize="24sp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Р В РЎС™Р В РЎвЂўР В РЎвЂ Р В РЎвЂќР В Р’В»Р В РЎвЂР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™Р РЋРІР‚в„–"
+                    android:text="@string/trainer_clients_title"
                     android:textSize="10sp"
                     android:textColor="#1A1A2E"
                     android:gravity="center"
@@ -146,13 +146,13 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="РЎР‚РЎСџРІР‚СљРІР‚в„–"
+                android:text="@string/trainer_plan_icon"
                 android:textSize="24sp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Р В РЎСљР В Р’В°Р В Р’В·Р В Р вЂ¦Р В Р’В°Р РЋРІР‚РЋР В РЎвЂР РЋРІР‚С™Р РЋР Р‰ Р В РЎвЂ”Р В Р’В»Р В Р’В°Р В Р вЂ¦"
+                android:text="@string/trainer_plan_title"
                 android:textSize="11sp"
                 android:textColor="#1A1A2E"
                 android:layout_marginTop="4dp"/>
@@ -163,7 +163,7 @@
             android:id="@+id/tvSectionTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Р В Р’ВР В Р вЂ¦Р РЋРІР‚С›Р В РЎвЂўР РЋР вЂљР В РЎВР В Р’В°Р РЋРІР‚В Р В РЎвЂР РЋР РЏ"
+            android:text="@string/trainer_manage_title"
             android:fontFamily="sans-serif"
             android:textColor="@color/fitbook_text_primary"
             android:textSize="18sp"
