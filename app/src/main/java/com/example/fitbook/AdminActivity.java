@@ -82,7 +82,7 @@ public class AdminActivity extends AppCompatActivity {
         dataList = new ArrayList<>();
         itemIds = new ArrayList<>();
         allClientItems = new ArrayList<>();
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, dataList);
+        adapter = new ArrayAdapter<>(this, R.layout.item_dark_list_text, dataList);
         listView.setAdapter(adapter);
 
         clientFilterContainer = findViewById(R.id.clientFilterContainer);
@@ -165,8 +165,8 @@ public class AdminActivity extends AppCompatActivity {
 
     private void refreshClientFilterOptions() {
         if (clientTrainerFilterAdapter == null) {
-            clientTrainerFilterAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, clientTrainerFilterNames);
-            clientTrainerFilterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            clientTrainerFilterAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, clientTrainerFilterNames);
+            clientTrainerFilterAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
             spinnerClientTrainerFilter.setAdapter(clientTrainerFilterAdapter);
             spinnerClientTrainerFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
@@ -181,8 +181,8 @@ public class AdminActivity extends AppCompatActivity {
         }
 
         if (clientMembershipFilterAdapter == null) {
-            clientMembershipFilterAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, clientMembershipFilterNames);
-            clientMembershipFilterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            clientMembershipFilterAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, clientMembershipFilterNames);
+            clientMembershipFilterAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
             spinnerClientMembershipFilter.setAdapter(clientMembershipFilterAdapter);
             spinnerClientMembershipFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
@@ -197,8 +197,8 @@ public class AdminActivity extends AppCompatActivity {
         }
 
         if (clientSortFilterAdapter == null) {
-            clientSortFilterAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, clientSortFilterNames);
-            clientSortFilterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            clientSortFilterAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, clientSortFilterNames);
+            clientSortFilterAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
             spinnerClientSort.setAdapter(clientSortFilterAdapter);
             spinnerClientSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
@@ -315,7 +315,7 @@ public class AdminActivity extends AppCompatActivity {
 
         adapter.notifyDataSetChanged();
     }
-    private void showAddTrainerDialog() {
+        private void showAddTrainerDialog() {
         View view = getLayoutInflater().inflate(R.layout.dialog_trainer_add, null);
 
         EditText etName = view.findViewById(R.id.etName);
@@ -324,14 +324,15 @@ public class AdminActivity extends AppCompatActivity {
         com.google.android.material.textfield.MaterialAutoCompleteTextView etSpecialization = view.findViewById(R.id.etSpecialization);
         EditText etExperience = view.findViewById(R.id.etExperience);
 
-        ArrayAdapter<String> specializationAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.specialization_options));
+        ArrayAdapter<String> specializationAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, getResources().getStringArray(R.array.specialization_options));
+        specializationAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
         etSpecialization.setAdapter(specializationAdapter);
 
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setTitle("Р вЂќР С•Р В±Р В°Р Р†Р С‘РЎвЂљРЎРЉ РЎвЂљРЎР‚Р ВµР Р…Р ВµРЎР‚Р В°")
+                .setTitle(R.string.dialog_add_trainer_title)
                 .setView(view)
-                .setPositiveButton("Р вЂќР С•Р В±Р В°Р Р†Р С‘РЎвЂљРЎРЉ", null)
-                .setNegativeButton("Р С›РЎвЂљР СР ВµР Р…Р В°", (dialogInterface, which) -> dialogInterface.dismiss())
+                .setPositiveButton(R.string.action_add, null)
+                .setNegativeButton(R.string.action_cancel, (dialogInterface, which) -> dialogInterface.dismiss())
                 .create();
 
         dialog.setOnShowListener(dialogInterface -> dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
@@ -343,35 +344,28 @@ public class AdminActivity extends AppCompatActivity {
                     String experienceText = etExperience.getText() == null ? "" : etExperience.getText().toString().trim();
 
                     if (name.isEmpty() || phone.isEmpty() || specialization.isEmpty() || experienceText.isEmpty()) {
-                        Toast.makeText(this, "Р вЂ”Р В°Р С—Р С•Р В»Р Р…Р С‘РЎвЂљР Вµ Р С‘Р СРЎРЏ, РЎвЂљР ВµР В»Р ВµРЎвЂћР С•Р Р…, РЎРѓР С—Р ВµРЎвЂ Р С‘Р В°Р В»Р С‘Р В·Р В°РЎвЂ Р С‘РЎР‹ Р С‘ Р С•Р С—РЎвЂ№РЎвЂљ", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.dialog_fill_trainer, Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     try {
-                        boolean success = dbHelper.addTrainer(
-                                name,
-                                phone,
-                                email,
-                                specialization,
-                                Integer.parseInt(experienceText)
-                        );
+                        boolean success = dbHelper.addTrainer(name, phone, email, specialization, Integer.parseInt(experienceText));
                         if (success) {
-                            Toast.makeText(this, "Р СћРЎР‚Р ВµР Р…Р ВµРЎР‚ Р Т‘Р С•Р В±Р В°Р Р†Р В»Р ВµР Р…", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.dialog_trainer_added, Toast.LENGTH_SHORT).show();
                             currentMode = "trainers";
                             loadTrainers();
                             dialog.dismiss();
                         } else {
-                            Toast.makeText(this, "Р СњР Вµ РЎС“Р Т‘Р В°Р В»Р С•РЎРѓРЎРЉ Р Т‘Р С•Р В±Р В°Р Р†Р С‘РЎвЂљРЎРЉ РЎвЂљРЎР‚Р ВµР Р…Р ВµРЎР‚Р В°", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.dialog_trainer_add_error, Toast.LENGTH_SHORT).show();
                         }
-                    } catch (NumberFormatException e) {
-                        Toast.makeText(this, "Р С›Р С—РЎвЂ№РЎвЂљ Р Т‘Р С•Р В»Р В¶Р ВµР Р… Р В±РЎвЂ№РЎвЂљРЎРЉ РЎвЂЎР С‘РЎРѓР В»Р С•Р С", Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
-                        Toast.makeText(this, "Р С›РЎв‚¬Р С‘Р В±Р С”Р В°: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.dialog_error_prefix, e.getMessage()), Toast.LENGTH_SHORT).show();
                     }
                 }));
 
         dialog.show();
     }
+
 
     private void showAddScheduleDialog() {
         View view = getLayoutInflater().inflate(R.layout.dialog_schedule_add, null);
@@ -427,7 +421,7 @@ public class AdminActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void showRegisterClientDialog() {
+        private void showRegisterClientDialog() {
         View view = getLayoutInflater().inflate(R.layout.dialog_client_register, null);
 
         EditText etUsername = view.findViewById(R.id.etUsername);
@@ -436,10 +430,10 @@ public class AdminActivity extends AppCompatActivity {
         EditText etPhone = view.findViewById(R.id.etPhone);
 
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setTitle("Р В Р ВµР С–Р С‘РЎРѓРЎвЂљРЎР‚Р В°РЎвЂ Р С‘РЎРЏ Р В°Р С”Р С”Р В°РЎС“Р Р…РЎвЂљР В°")
+                .setTitle(R.string.dialog_register_client_title)
                 .setView(view)
-                .setPositiveButton("Р вЂ”Р В°РЎР‚Р ВµР С–Р С‘РЎРѓРЎвЂљРЎР‚Р С‘РЎР‚Р С•Р Р†Р В°РЎвЂљРЎРЉ", null)
-                .setNegativeButton("Р С›РЎвЂљР СР ВµР Р…Р В°", (dialogInterface, which) -> dialogInterface.dismiss())
+                .setPositiveButton(R.string.register_button, null)
+                .setNegativeButton(R.string.action_cancel, (dialogInterface, which) -> dialogInterface.dismiss())
                 .create();
 
         dialog.setOnShowListener(dialogInterface -> dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
@@ -450,33 +444,28 @@ public class AdminActivity extends AppCompatActivity {
                     String phone = etPhone.getText() == null ? "" : etPhone.getText().toString().trim();
 
                     if (username.isEmpty() || password.isEmpty() || fullName.isEmpty() || phone.isEmpty()) {
-                        Toast.makeText(this, "Р вЂ”Р В°Р С—Р С•Р В»Р Р…Р С‘РЎвЂљР Вµ Р Р†РЎРѓР Вµ Р С—Р С•Р В»РЎРЏ", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.dialog_fill_client_register, Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     try {
-                        boolean success = dbHelper.registerClient(
-                                username,
-                                password,
-                                fullName,
-                                phone,
-                                ""
-                        );
+                        boolean success = dbHelper.registerClient(username, password, fullName, phone, "");
                         if (success) {
-                            Toast.makeText(this, "Р С™Р В»Р С‘Р ВµР Р…РЎвЂљ Р В·Р В°РЎР‚Р ВµР С–Р С‘РЎРѓРЎвЂљРЎР‚Р С‘РЎР‚Р С•Р Р†Р В°Р Р…", Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, R.string.dialog_client_registered, Toast.LENGTH_LONG).show();
                             currentMode = "clients";
                             loadClients();
                             dialog.dismiss();
                         } else {
-                            Toast.makeText(this, "Р СњР Вµ РЎС“Р Т‘Р В°Р В»Р С•РЎРѓРЎРЉ Р В·Р В°РЎР‚Р ВµР С–Р С‘РЎРѓРЎвЂљРЎР‚Р С‘РЎР‚Р С•Р Р†Р В°РЎвЂљРЎРЉ Р С”Р В»Р С‘Р ВµР Р…РЎвЂљР В°", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.dialog_client_register_error, Toast.LENGTH_SHORT).show();
                         }
                     } catch (Exception e) {
-                        Toast.makeText(this, "Р С›РЎв‚¬Р С‘Р В±Р С”Р В°: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.dialog_error_prefix, e.getMessage()), Toast.LENGTH_SHORT).show();
                     }
                 }));
 
         dialog.show();
     }
+
 
     private void loadClients() {
         clientFilterContainer.setVisibility(View.VISIBLE);
@@ -582,7 +571,7 @@ public class AdminActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
     }
 
-    private void showAddMembershipDialog() {
+        private void showAddMembershipDialog() {
         AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
         View view = getLayoutInflater().inflate(R.layout.dialog_membership_add, null);
 
@@ -591,9 +580,9 @@ public class AdminActivity extends AppCompatActivity {
         EditText etDurationDays = view.findViewById(R.id.etDurationDays);
         EditText etPrice = view.findViewById(R.id.etPrice);
 
-        builder.setTitle("Р В Р вЂ Р РЋРІР‚С”Р Р†Р вЂљРЎС› Р В Р’В Р Р†Р вЂљРЎСљР В Р’В Р РЋРІР‚СћР В Р’В Р вЂ™Р’В±Р В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ° Р В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРЎв„ў")
+        builder.setTitle(R.string.dialog_add_membership_title)
                 .setView(view)
-                .setPositiveButton("Р В Р’В Р Р†Р вЂљРЎСљР В Р’В Р РЋРІР‚СћР В Р’В Р вЂ™Р’В±Р В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ°", (dialog, which) -> {
+                .setPositiveButton(R.string.action_add, (dialog, which) -> {
                     try {
                         boolean success = dbHelper.createMembershipType(
                                 etName.getText().toString(),
@@ -601,38 +590,39 @@ public class AdminActivity extends AppCompatActivity {
                                 Integer.parseInt(etDurationDays.getText().toString()),
                                 Integer.parseInt(etPrice.getText().toString())
                         );
-                        Toast.makeText(this, success ? "Р В Р’В Р РЋРІР‚в„ўР В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРЎв„ў Р В Р’В Р СћРІР‚ВР В Р’В Р РЋРІР‚СћР В Р’В Р вЂ™Р’В±Р В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦" : "Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†РІР‚С™Р’В¬Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В°", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, success ? R.string.dialog_membership_added : R.string.dialog_membership_add_error, Toast.LENGTH_SHORT).show();
                         if (success) {
                             loadMembershipTypes();
                         }
                     } catch (Exception e) {
-                        Toast.makeText(this, "Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†РІР‚С™Р’В¬Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В°: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.dialog_error_prefix, e.getMessage()), Toast.LENGTH_SHORT).show();
                     }
                 })
-                .setNegativeButton("Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’В°", null)
+                .setNegativeButton(R.string.action_cancel, null)
                 .show();
     }
 
-    private void showEditDeleteDialog(int position) {
+
+        private void showEditDeleteDialog(int position) {
         if (position >= itemIds.size()) return;
 
         final long id = itemIds.get(position);
         String[] options;
 
         if (currentMode.equals("schedule")) {
-            options = new String[]{"Редактировать тренировку", "Удалить тренировку"};
+            options = new String[]{getString(R.string.action_edit) + " " + getString(R.string.noun_schedule), getString(R.string.action_delete) + " " + getString(R.string.noun_schedule)};
         } else if (currentMode.equals("trainers")) {
-            options = new String[]{"Редактировать тренера", "Удалить тренера"};
+            options = new String[]{getString(R.string.action_edit) + " " + getString(R.string.noun_trainer), getString(R.string.action_delete) + " " + getString(R.string.noun_trainer)};
         } else if (currentMode.equals("memberships")) {
-            options = new String[]{"Редактировать абонемент", "Удалить абонемент"};
+            options = new String[]{getString(R.string.action_edit) + " " + getString(R.string.noun_membership), getString(R.string.action_delete) + " " + getString(R.string.noun_membership)};
         } else if (currentMode.equals("clients")) {
-            options = new String[]{"Просмотр", "Редактировать", "Назначить тренера", "Удалить"};
+            options = new String[]{getString(R.string.action_view), getString(R.string.action_edit), getString(R.string.dialog_assign_trainer_title), getString(R.string.action_delete)};
         } else {
-            options = new String[]{"Просмотр информации"};
+            options = new String[]{getString(R.string.action_view) + " " + getString(R.string.noun_info)};
         }
 
         AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
-        builder.setTitle("Выберите действие")
+        builder.setTitle(R.string.dialog_choose_action)
                 .setItems(options, (dialog, which) -> {
                     if (currentMode.equals("clients")) {
                         if (which == 0) {
@@ -661,7 +651,8 @@ public class AdminActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void showEditClientDialog(long clientId) {
+
+        private void showEditClientDialog(long clientId) {
         Cursor client = dbHelper.getAllClients();
         String username = "";
         String fullName = "";
@@ -692,10 +683,10 @@ public class AdminActivity extends AppCompatActivity {
         etEmail.setText(email);
 
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setTitle("Редактирование клиента")
+                .setTitle(R.string.dialog_edit_client_title)
                 .setView(view)
-                .setPositiveButton("Сохранить", null)
-                .setNegativeButton("Отмена", (dialogInterface, which) -> dialogInterface.dismiss())
+                .setPositiveButton(R.string.action_save, null)
+                .setNegativeButton(R.string.action_cancel, (dialogInterface, which) -> dialogInterface.dismiss())
                 .create();
 
         dialog.setOnShowListener(dialogInterface -> dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
@@ -707,24 +698,25 @@ public class AdminActivity extends AppCompatActivity {
                     String newEmail = etEmail.getText() == null ? "" : etEmail.getText().toString().trim();
 
                     if (newUsername.isEmpty() || newFullName.isEmpty() || newPhone.isEmpty()) {
-                        Toast.makeText(this, "Заполните логин, ФИО и телефон", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.dialog_fill_client_register, Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     boolean success = dbHelper.updateClient(clientId, newUsername, newPassword, newFullName, newPhone, newEmail);
                     if (success) {
-                        Toast.makeText(this, "Клиент обновлен", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.dialog_client_updated, Toast.LENGTH_SHORT).show();
                         loadClients();
                         dialog.dismiss();
                     } else {
-                        Toast.makeText(this, "Не удалось обновить клиента", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.dialog_client_update_error, Toast.LENGTH_SHORT).show();
                     }
                 }));
 
         dialog.show();
     }
 
-    private void showAssignTrainerDialog(long clientId) {
+
+        private void showAssignTrainerDialog(long clientId) {
         View view = getLayoutInflater().inflate(R.layout.dialog_client_assign_trainer, null);
         Spinner spinnerTrainer = view.findViewById(R.id.spinnerTrainer);
 
@@ -737,64 +729,69 @@ public class AdminActivity extends AppCompatActivity {
         }
         trainers.close();
 
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, trainerNames);
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, trainerNames);
+        spinnerAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
         spinnerTrainer.setAdapter(spinnerAdapter);
 
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setTitle("Назначить тренера")
+                .setTitle(R.string.dialog_assign_trainer_title)
                 .setView(view)
-                .setPositiveButton("Назначить", null)
-                .setNegativeButton("Отмена", (dialogInterface, which) -> dialogInterface.dismiss())
+                .setPositiveButton(R.string.action_assign, null)
+                .setNegativeButton(R.string.action_cancel, (dialogInterface, which) -> dialogInterface.dismiss())
                 .create();
 
         dialog.setOnShowListener(dialogInterface -> dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
                 .setOnClickListener(v -> {
                     int pos = spinnerTrainer.getSelectedItemPosition();
                     if (pos < 0 || pos >= trainerIds.size()) {
-                        Toast.makeText(this, "Выберите тренера", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.dialog_choose_trainer, Toast.LENGTH_SHORT).show();
                         return;
                     }
 
-                    boolean success = dbHelper.assignTrainerToClient(clientId, trainerIds.get(pos), "Назначено администратором");
+                    boolean success = dbHelper.assignTrainerToClient(clientId, trainerIds.get(pos), getString(R.string.dialog_trainer_assigned_by_admin));
                     if (success) {
-                        Toast.makeText(this, "Тренер назначен", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.dialog_trainer_assigned, Toast.LENGTH_SHORT).show();
                         loadClients();
                         dialog.dismiss();
                     } else {
-                        Toast.makeText(this, "Не удалось назначить тренера", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.dialog_trainer_assign_error, Toast.LENGTH_SHORT).show();
                     }
                 }));
 
         dialog.show();
     }
 
-    private void showDeleteClientConfirmDialog(long clientId) {
+
+        private void showDeleteClientConfirmDialog(long clientId) {
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setTitle("Удалить клиента")
-                .setMessage("Удалить клиента вместе с его записями и данными?")
-                .setPositiveButton("Удалить", null)
-                .setNegativeButton("Отмена", (dialogInterface, which) -> dialogInterface.dismiss())
+                .setTitle(R.string.dialog_delete_client_title)
+                .setMessage(R.string.dialog_delete_client_message)
+                .setPositiveButton(R.string.action_delete, null)
+                .setNegativeButton(R.string.action_cancel, (dialogInterface, which) -> dialogInterface.dismiss())
                 .create();
 
         dialog.setOnShowListener(dialogInterface -> dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
                 .setOnClickListener(v -> {
                     boolean success = dbHelper.deleteClient(clientId);
                     if (success) {
-                        Toast.makeText(this, "Клиент удален", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.dialog_client_deleted, Toast.LENGTH_SHORT).show();
                         loadClients();
                         dialog.dismiss();
                     } else {
-                        Toast.makeText(this, "Не удалось удалить клиента", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.dialog_client_delete_error, Toast.LENGTH_SHORT).show();
                     }
                 }));
 
         dialog.show();
     }
 
-    private void showEditTrainerDialog(final long trainerId) {
+
+        private void showEditTrainerDialog(final long trainerId) {
         Cursor trainer = dbHelper.getAllTrainers();
-        String name = "", phone = "", email = "", spec = "";
+        String name = "";
+        String phone = "";
+        String email = "";
+        String spec = "";
         int exp = 0;
 
         while (trainer.moveToNext()) {
@@ -809,16 +806,15 @@ public class AdminActivity extends AppCompatActivity {
         }
         trainer.close();
 
-        AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
         View view = getLayoutInflater().inflate(R.layout.dialog_trainer_edit, null);
-
         EditText etName = view.findViewById(R.id.etName);
         EditText etPhone = view.findViewById(R.id.etPhone);
         EditText etEmail = view.findViewById(R.id.etEmail);
         com.google.android.material.textfield.MaterialAutoCompleteTextView etSpecialization = view.findViewById(R.id.etSpecialization);
         EditText etExperience = view.findViewById(R.id.etExperience);
 
-        ArrayAdapter<String> specializationAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.specialization_options));
+        ArrayAdapter<String> specializationAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, getResources().getStringArray(R.array.specialization_options));
+        specializationAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
         etSpecialization.setAdapter(specializationAdapter);
 
         etName.setText(name);
@@ -827,8 +823,15 @@ public class AdminActivity extends AppCompatActivity {
         etSpecialization.setText(spec);
         etExperience.setText(String.valueOf(exp));
 
-        builder.setTitle("Р В Р вЂ Р РЋРЎв„ўР В Р РЏР В РЎвЂ”Р РЋРІР‚ВР В Р РЏ Р В Р’В Р вЂ™Р’В Р В Р’В Р вЂ™Р’ВµР В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р РЋРІР‚СњР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚ВР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’В°Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ° Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’В°").setView(view)
-                .setPositiveButton("Р В Р’В Р В Р вЂ№Р В Р’В Р РЋРІР‚СћР В Р Р‹Р Р†Р вЂљР’В¦Р В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ°", (dialog, which) -> {
+        androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.dialog_edit_trainer_title)
+                .setView(view)
+                .setPositiveButton(R.string.action_save, null)
+                .setNegativeButton(R.string.action_cancel, (dialogInterface, which) -> dialogInterface.dismiss())
+                .create();
+
+        dialog.setOnShowListener(dialogInterface -> dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
+                .setOnClickListener(v -> {
                     try {
                         boolean success = dbHelper.updateTrainer(
                                 trainerId,
@@ -838,14 +841,15 @@ public class AdminActivity extends AppCompatActivity {
                                 etSpecialization.getText().toString(),
                                 Integer.parseInt(etExperience.getText().toString())
                         );
-                        Toast.makeText(this, success ? "Р В Р’В Р РЋРЎвЂєР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РІР‚С™ Р В Р’В Р РЋРІР‚СћР В Р’В Р вЂ™Р’В±Р В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦" : "Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†РІР‚С™Р’В¬Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В°", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, success ? R.string.dialog_trainer_updated : R.string.dialog_trainer_update_error, Toast.LENGTH_SHORT).show();
                         loadTrainers();
+                        dialog.dismiss();
                     } catch (Exception e) {
-                        Toast.makeText(this, "Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†РІР‚С™Р’В¬Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В°: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.dialog_error_prefix, e.getMessage()), Toast.LENGTH_SHORT).show();
                     }
-                })
-                .setNegativeButton("Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’В°", null).show();
+                }));
     }
+
 
     private void showEditScheduleDialog(final long scheduleId) {
         Cursor schedule = dbHelper.getScheduleById(scheduleId);
@@ -983,9 +987,12 @@ public class AdminActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void showClientInfoDialog(long clientId) {
+        private void showClientInfoDialog(long clientId) {
         Cursor client = dbHelper.getAllClients();
-        String name = "", phone = "", email = "", username = "";
+        String name = "";
+        String phone = "";
+        String email = "";
+        String username = "";
 
         while (client.moveToNext()) {
             if (client.getLong(client.getColumnIndexOrThrow(DatabaseHelper.COL_USER_ID)) == clientId) {
@@ -999,62 +1006,55 @@ public class AdminActivity extends AppCompatActivity {
         client.close();
 
         AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
-        builder.setTitle("Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р Р†Р вЂљРІвЂћвЂ“ Р В Р’В Р вЂ™Р’ВР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРЎвЂєР В Р’В Р РЋРІР‚СћР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’В°Р В Р Р‹Р Р†Р вЂљР’В Р В Р’В Р РЋРІР‚ВР В Р Р‹Р В Р РЏ Р В Р’В Р РЋРІР‚Сћ Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В»Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р вЂ™Р’Вµ")
-                .setMessage("Р РЋР вЂљР РЋРЎСџР Р†Р вЂљР’ВР вЂ™Р’В¤ Р В Р’В Р вЂ™Р’ВР В Р’В Р РЋР’ВР В Р Р‹Р В Р РЏ: " + name +
-                        "\nР РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р РЋРІР‚С” Р В Р’В Р РЋРЎвЂєР В Р’В Р вЂ™Р’ВµР В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р Р†Р вЂљРЎвЂєР В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В¦: " + phone +
-                        "\nР РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р вЂ™Р’В§ Email: " + email +
-                        "\nР РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎСљР Р†Р вЂљР’В Р В Р’В Р Р†Р вЂљРЎвЂќР В Р’В Р РЋРІР‚СћР В Р’В Р РЋРІР‚вЂњР В Р’В Р РЋРІР‚ВР В Р’В Р В РІР‚В¦: " + username)
-                .setPositiveButton("OK", null)
+        builder.setTitle(R.string.dialog_client_info_title)
+                .setMessage(getString(R.string.dialog_client_info_message, name, phone, email, username))
+                .setPositiveButton(android.R.string.ok, null)
                 .show();
     }
 
-    private void showDeleteConfirmDialog(final long id, final String mode) {
-        String message = "";
-        if (mode.equals("schedule")) {
-            message = "Р В Р’В Р В РІвЂљВ¬Р В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В»Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ° Р В Р Р‹Р В Р Р‰Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р РЋРІР‚Сљ Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚СњР В Р Р‹Р РЋРІР‚Сљ?";
-        } else if (mode.equals("trainers")) {
-            message = "Р В Р’В Р В РІвЂљВ¬Р В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В»Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ° Р В Р Р‹Р В Р Р‰Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚СћР В Р’В Р РЋРІР‚вЂњР В Р’В Р РЋРІР‚Сћ Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’В°?";
-        } else if (mode.equals("memberships")) {
-            message = "Р В Р’В Р В РІвЂљВ¬Р В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В»Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ° Р В Р Р‹Р В Р Р‰Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚СћР В Р Р‹Р Р†Р вЂљРЎв„ў Р В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРЎв„ў?";
-        }
+
+        private void showDeleteConfirmDialog(final long id, final String mode) {
+        String message = getString(R.string.dialog_delete_confirm_message);
 
         AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
-        builder.setTitle("Р В Р’В Р РЋРЎСџР В Р’В Р РЋРІР‚СћР В Р’В Р СћРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’В¶Р В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’Вµ Р В Р Р‹Р РЋРІР‚СљР В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р В Р РЏ")
+        builder.setTitle(R.string.dialog_delete_confirm_title)
                 .setMessage(message)
-                .setPositiveButton("Р В Р’В Р В РІвЂљВ¬Р В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В»Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ°", (dialog, which) -> {
+                .setPositiveButton(R.string.action_delete, (dialog, which) -> {
                     boolean success;
                     if (mode.equals("schedule")) {
                         success = dbHelper.deleteSchedule(id);
-                        Toast.makeText(this, success ? "Р В Р’В Р РЋРЎвЂєР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В° Р В Р Р‹Р РЋРІР‚СљР В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’В°" : "Р В Р’В Р РЋРЎС™Р В Р’В Р вЂ™Р’ВµР В Р’В Р вЂ™Р’В»Р В Р Р‹Р В Р вЂ°Р В Р’В Р вЂ™Р’В·Р В Р Р‹Р В Р РЏ Р В Р Р‹Р РЋРІР‚СљР В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В»Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ°: Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РЎвЂњР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ° Р В Р’В Р вЂ™Р’В·Р В Р’В Р вЂ™Р’В°Р В Р’В Р РЋРІР‚вЂќР В Р’В Р РЋРІР‚ВР В Р Р‹Р В РЎвЂњР В Р’В Р РЋРІР‚В Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В»Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В ", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, success ? R.string.dialog_deleted_ok : R.string.dialog_delete_error, Toast.LENGTH_LONG).show();
                         if (success) loadSchedule();
                     } else if (mode.equals("trainers")) {
                         success = dbHelper.deleteTrainer(id);
-                        Toast.makeText(this, success ? "Р В Р’В Р РЋРЎвЂєР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РІР‚С™ Р В Р Р‹Р РЋРІР‚СљР В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦" : "Р В Р’В Р РЋРЎС™Р В Р’В Р вЂ™Р’ВµР В Р’В Р вЂ™Р’В»Р В Р Р‹Р В Р вЂ°Р В Р’В Р вЂ™Р’В·Р В Р Р‹Р В Р РЏ Р В Р Р‹Р РЋРІР‚СљР В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В»Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ°: Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РЎвЂњР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ° Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚СњР В Р’В Р РЋРІР‚В", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, success ? R.string.dialog_deleted_ok : R.string.dialog_delete_error, Toast.LENGTH_LONG).show();
                         if (success) loadTrainers();
                     } else if (mode.equals("memberships")) {
                         success = dbHelper.deleteMembershipType(id);
-                        Toast.makeText(this, success ? "Р В Р’В Р РЋРІР‚в„ўР В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРЎв„ў Р В Р Р‹Р РЋРІР‚СљР В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦" : "Р В Р’В Р РЋРЎС™Р В Р’В Р вЂ™Р’ВµР В Р’В Р вЂ™Р’В»Р В Р Р‹Р В Р вЂ°Р В Р’В Р вЂ™Р’В·Р В Р Р‹Р В Р РЏ Р В Р Р‹Р РЋРІР‚СљР В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В»Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ°: Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РЎвЂњР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ° Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В»Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р Р†Р вЂљРІвЂћвЂ“ Р В Р Р‹Р В РЎвЂњ Р В Р Р‹Р В Р Р‰Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚ВР В Р’В Р РЋР’В Р В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚СћР В Р’В Р РЋР’В", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, success ? R.string.dialog_deleted_ok : R.string.dialog_delete_error, Toast.LENGTH_LONG).show();
                         if (success) loadMembershipTypes();
                     } else {
                         success = false;
                     }
                 })
-                .setNegativeButton("Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’В°", null)
+                .setNegativeButton(R.string.action_cancel, null)
                 .show();
     }
 
-    private void logout() {
+
+        private void logout() {
         AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
-        builder.setTitle("Р В Р’В Р Р†Р вЂљРІвЂћСћР В Р Р‹Р Р†Р вЂљРІвЂћвЂ“Р В Р Р‹Р Р†Р вЂљР’В¦Р В Р’В Р РЋРІР‚СћР В Р’В Р СћРІР‚В")
-                .setMessage("Р В Р’В Р Р†Р вЂљРІвЂћСћР В Р Р‹Р Р†Р вЂљРІвЂћвЂ“ Р В Р Р‹Р РЋРІР‚СљР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРІвЂћвЂ“, Р В Р Р‹Р Р†Р вЂљР Р‹Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚Сћ Р В Р Р‹Р Р†Р вЂљР’В¦Р В Р’В Р РЋРІР‚СћР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р вЂ™Р’Вµ Р В Р’В Р В РІР‚В Р В Р Р‹Р Р†Р вЂљРІвЂћвЂ“Р В Р’В Р Р†РІР‚С›РІР‚вЂњР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚В?")
-                .setPositiveButton("Р В Р’В Р Р†Р вЂљРЎСљР В Р’В Р вЂ™Р’В°", (dialog, which) -> {
+        builder.setTitle(R.string.dialog_logout_title)
+                .setMessage(R.string.dialog_logout_message)
+                .setPositiveButton(R.string.profile_logout_positive, (dialog, which) -> {
                     SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
                     prefs.edit().clear().apply();
                     startActivity(new Intent(this, LoginActivity.class));
                     finish();
                 })
-                .setNegativeButton("Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’В°", null)
+                .setNegativeButton(R.string.profile_logout_negative, null)
                 .show();
     }
+
 }
 

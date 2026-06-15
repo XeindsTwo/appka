@@ -50,7 +50,7 @@ public class TrainerActivity extends AppCompatActivity {
         tvSectionTitle.setText(getString(R.string.trainer_schedule_title));
 
         dataList = new ArrayList<>();
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, dataList);
+        adapter = new ArrayAdapter<>(this, R.layout.item_dark_list_text, dataList);
         listView.setAdapter(adapter);
 
         findViewById(R.id.btnMySchedule).setOnClickListener(v -> loadMySchedule());

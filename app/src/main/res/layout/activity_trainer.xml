@@ -96,7 +96,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/trainer_schedule_title"
                     android:textSize="10sp"
-                    android:textColor="#1A1A2E"
+                    android:textColor="@color/fitbook_text_on_accent"
                     android:gravity="center"
                     android:layout_marginTop="4dp"/>
             </LinearLayout>
@@ -125,7 +125,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/trainer_clients_title"
                     android:textSize="10sp"
-                    android:textColor="#1A1A2E"
+                    android:textColor="@color/fitbook_text_on_accent"
                     android:gravity="center"
                     android:layout_marginTop="4dp"/>
             </LinearLayout>
@@ -154,7 +154,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/trainer_plan_title"
                 android:textSize="11sp"
-                android:textColor="#1A1A2E"
+                android:textColor="@color/fitbook_text_on_accent"
                 android:layout_marginTop="4dp"/>
         </LinearLayout>
 

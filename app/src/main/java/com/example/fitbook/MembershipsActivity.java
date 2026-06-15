@@ -181,12 +181,16 @@ public class MembershipsActivity extends AppCompatActivity {
 
         tvPlanInfo.setText(planName + " • " + durationDays + " дней • " + price + " ₽\n" + description);
 
-        ArrayAdapter<String> paymentAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,
+        ArrayAdapter<String> paymentAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark,
                 new String[]{"Карта", "Наличные", "Перевод", "СБП"});
-        ArrayAdapter<String> goalAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,
+        ArrayAdapter<String> goalAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark,
                 new String[]{"Похудение", "Набор мышц", "Поддержание формы", "Мобильность"});
-        ArrayAdapter<String> timeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,
+        ArrayAdapter<String> timeAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark,
                 new String[]{"Утро", "День", "Вечер", "Любое время"});
+
+        paymentAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
+        goalAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
+        timeAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
 
         actPaymentMethod.setAdapter(paymentAdapter);
         actGoal.setAdapter(goalAdapter);

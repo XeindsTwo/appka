@@ -73,13 +73,13 @@ public class ClientManagementActivity extends AppCompatActivity {
 
         findViewById(R.id.btnRegisterClient).setOnClickListener(v -> showRegisterClientDialog());
 
-        trainerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, trainerFilterNames);
-        trainerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        trainerAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, trainerFilterNames);
+        trainerAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
         spinnerTrainer.setAdapter(trainerAdapter);
         spinnerTrainer.setOnItemSelectedListener(new SimpleItemSelectedListener(this::renderItems));
 
-        membershipAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, membershipFilterNames);
-        membershipAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        membershipAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, membershipFilterNames);
+        membershipAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
         spinnerMembership.setAdapter(membershipAdapter);
         spinnerMembership.setOnItemSelectedListener(new SimpleItemSelectedListener(this::renderItems));
 
@@ -261,8 +261,8 @@ public class ClientManagementActivity extends AppCompatActivity {
         }
 
         Spinner spinner = new Spinner(this);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, trainerNames);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, trainerNames);
+        adapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
         spinner.setAdapter(adapter);
         int selectedIndex = 0;
         if (item.trainerName != null) {

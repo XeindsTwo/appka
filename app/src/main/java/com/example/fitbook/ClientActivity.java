@@ -60,7 +60,7 @@ public class ClientActivity extends AppCompatActivity {
         tvSectionTitle.setText(getString(R.string.client_workouts_title));
 
         dataList = new ArrayList<>();
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, dataList);
+        adapter = new ArrayAdapter<>(this, R.layout.item_dark_list_text, dataList);
         listView.setAdapter(adapter);
 
         // Р В РЎв„ўР В Р вЂ¦Р В РЎвЂўР В РЎвЂ”Р В РЎвЂќР В РЎвЂ
@@ -455,8 +455,8 @@ public class ClientActivity extends AppCompatActivity {
         final Spinner spinnerFeeling = view.findViewById(R.id.spinnerFeeling);
 
         String[] feelings = {"Р В РЎвЂєР РЋРІР‚С™Р В Р’В»Р В РЎвЂР РЋРІР‚РЋР В Р вЂ¦Р В РЎвЂў РЎР‚РЎСџРІР‚в„ўР вЂћ", "Р В РўС’Р В РЎвЂўР РЋР вЂљР В РЎвЂўР РЋРІвЂљВ¬Р В РЎвЂў РЎР‚РЎСџРІР‚ВР РЉ", "Р В Р в‚¬Р РЋР С“Р РЋРІР‚С™Р В Р’В°Р В Р’В» РЎР‚РЎСџР’ВРІР‚Сљ", "Р В РЎСџР В Р’В»Р В РЎвЂўР РЋРІР‚В¦Р В РЎвЂў РЎР‚РЎСџР’ВРЎвЂє"};
-        ArrayAdapter<String> feelingAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, feelings);
-        feelingAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> feelingAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, feelings);
+        feelingAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
         spinnerFeeling.setAdapter(feelingAdapter);
 
         builder.setTitle("РЎР‚РЎСџР РЏРІР‚в„–Р С—РЎвЂР РЏ Р В РЎвЂєР РЋРІР‚С™Р В РЎВР В Р’ВµР РЋРІР‚С™Р В РЎвЂР РЋРІР‚С™Р РЋР Р‰ Р В Р вЂ Р РЋРІР‚в„–Р В РЎвЂ”Р В РЎвЂўР В Р’В»Р В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р В РЎвЂР В Р’Вµ Р РЋРІР‚С™Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР вЂљР В РЎвЂўР В Р вЂ Р В РЎвЂќР В РЎвЂ")

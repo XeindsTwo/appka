@@ -144,7 +144,9 @@ public class TrainerManagementActivity extends AppCompatActivity {
         etEmail.setText(item.email);
         etSpecialization.setText(item.specialization, false);
         etExperience.setText(String.valueOf(item.experience));
-        etSpecialization.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.specialization_options)));
+        ArrayAdapter<String> specializationAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, getResources().getStringArray(R.array.specialization_options));
+        specializationAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
+        etSpecialization.setAdapter(specializationAdapter);
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(this)
                 .setView(view)
