@@ -4,8 +4,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -14,50 +16,60 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class TrainerActivity extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
     private long trainerId;
     private ListView listView;
-    private ArrayAdapter<String> adapter;
-    private ArrayList<String> dataList;    private TextView tvTrainerName, tvSectionTitle;
+    private TrainerDashboardAdapter adapter;
+    private ArrayList<TrainerDashboardItem> dataList;
+    private TextView tvTrainerName;
+    private TextView tvSectionTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!AuthGuard.requireRole(this, "trainer")) return;
         setContentView(R.layout.activity_trainer);
 
         dbHelper = new DatabaseHelper(this);
 
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         trainerId = prefs.getLong(DatabaseHelper.COL_USER_ID, 0);
-        String trainerName = prefs.getString(DatabaseHelper.COL_FULL_NAME, "РўСЂРµРЅРµСЂ");
-
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(getString(R.string.trainer_dashboard_title));
+        String trainerName = prefs.getString(DatabaseHelper.COL_FULL_NAME, "Тренер");
 
         tvTrainerName = findViewById(R.id.tvTrainerName);
         tvSectionTitle = findViewById(R.id.tvSectionTitle);
         listView = findViewById(R.id.listView);
-        tvTrainerName.setText(getString(R.string.trainer_role_label) + " " + trainerName);
+
+        tvTrainerName.setText(trainerName);
         tvSectionTitle.setText(getString(R.string.trainer_schedule_title));
 
         dataList = new ArrayList<>();
-        adapter = new ArrayAdapter<>(this, R.layout.item_dark_list_text, dataList);
+        adapter = new TrainerDashboardAdapter();
         listView.setAdapter(adapter);
 
-        findViewById(R.id.btnMySchedule).setOnClickListener(v -> loadMySchedule());
-        findViewById(R.id.btnMyClients).setOnClickListener(v -> loadMyClients());
-        findViewById(R.id.btnAssignPlan).setOnClickListener(v -> loadMyClientsForAssign());
-        findViewById(R.id.btnOpenProfile).setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));        setupBottomNavigation();
+        findViewById(R.id.btnMySchedule).setOnClickListener(v -> {
+            tvSectionTitle.setText(getString(R.string.trainer_schedule_title));
+            loadMySchedule();
+        });
+        findViewById(R.id.btnMyClients).setOnClickListener(v -> {
+            tvSectionTitle.setText(getString(R.string.trainer_clients_title));
+            loadMyClients();
+        });
+        findViewById(R.id.btnAssignPlan).setOnClickListener(v -> {
+            tvSectionTitle.setText(getString(R.string.trainer_plan_title));
+            loadMyClientsForAssign();
+        });
+        findViewById(R.id.btnOpenProfile).setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
 
+        setupBottomNavigation();
         loadMySchedule();
     }
 
@@ -85,6 +97,7 @@ public class TrainerActivity extends AppCompatActivity {
 
     private void loadMySchedule() {
         dataList.clear();
+        listView.setOnItemClickListener(null);
         Cursor schedule = dbHelper.getTrainerSchedule(trainerId);
 
         if (schedule != null && schedule.moveToFirst()) {
@@ -96,19 +109,29 @@ public class TrainerActivity extends AppCompatActivity {
                 int max = schedule.getInt(schedule.getColumnIndexOrThrow(DatabaseHelper.COL_MAX_CLIENTS));
                 int duration = schedule.getInt(schedule.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_DURATION));
 
-                dataList.add("рџЏ‹пёЏ " + workoutType +
-                        "\nрџ“… " + date + " " + time + " (" + duration + " РјРёРЅ)" +
-                        "\nрџ‘Ґ Р—Р°РїРёСЃР°РЅРѕ: " + current + "/" + max);
+                dataList.add(new TrainerDashboardItem(
+                        workoutType,
+                        DateFormatUtils.formatRussianDate(date) + " | " + time + " | " + duration + " мин",
+                        "Записано: " + current + " из " + max,
+                        null
+                ));
             } while (schedule.moveToNext());
             schedule.close();
         } else {
-            dataList.add("РЈ РІР°СЃ РїРѕРєР° РЅРµС‚ РЅР°Р·РЅР°С‡РµРЅРЅС‹С… С‚СЂРµРЅРёСЂРѕРІРѕРє");
+            dataList.add(new TrainerDashboardItem(
+                    "Тренировок пока нет",
+                    "Администратор ещё не назначил занятия",
+                    "Когда расписание появится, оно будет показано здесь.",
+                    null
+            ));
         }
+
         adapter.notifyDataSetChanged();
     }
 
     private void loadMyClients() {
         dataList.clear();
+        listView.setOnItemClickListener(null);
         Cursor clients = dbHelper.getTrainerClients(trainerId);
 
         if (clients != null && clients.moveToFirst()) {
@@ -117,14 +140,23 @@ public class TrainerActivity extends AppCompatActivity {
                 String phone = clients.getString(clients.getColumnIndexOrThrow(DatabaseHelper.COL_PHONE));
                 String email = clients.getString(clients.getColumnIndexOrThrow(DatabaseHelper.COL_EMAIL));
 
-                dataList.add("рџ‘¤ " + name +
-                        "\nрџ“ћ " + phone +
-                        "\nрџ“§ " + email);
+                dataList.add(new TrainerDashboardItem(
+                        name,
+                        "Телефон: " + emptyToDash(phone),
+                        "Email: " + emptyToDash(email),
+                        null
+                ));
             } while (clients.moveToNext());
             clients.close();
         } else {
-            dataList.add("РЈ РІР°СЃ РїРѕРєР° РЅРµС‚ РєР»РёРµРЅС‚РѕРІ");
+            dataList.add(new TrainerDashboardItem(
+                    "Клиентов пока нет",
+                    "Администратор ещё не назначил клиентов",
+                    "Список появится здесь после назначения.",
+                    null
+            ));
         }
+
         adapter.notifyDataSetChanged();
     }
 
@@ -135,32 +167,50 @@ public class TrainerActivity extends AppCompatActivity {
         if (clients != null && clients.moveToFirst()) {
             final ArrayList<Long> clientIds = new ArrayList<>();
             final ArrayList<String> clientNames = new ArrayList<>();
+            final ArrayList<Long> planIds = new ArrayList<>();
 
             do {
                 long clientId = clients.getLong(clients.getColumnIndexOrThrow(DatabaseHelper.COL_USER_ID));
                 String name = clients.getString(clients.getColumnIndexOrThrow(DatabaseHelper.COL_FULL_NAME));
                 String phone = clients.getString(clients.getColumnIndexOrThrow(DatabaseHelper.COL_PHONE));
+                long planId = dbHelper.getLatestWorkoutPlanIdForClient(clientId);
 
                 clientIds.add(clientId);
                 clientNames.add(name);
+                planIds.add(planId);
 
-                dataList.add("рџ‘¤ " + name +
-                        "\nрџ“ћ " + phone +
-                        "\nв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓ\nвћЎпёЏ РќР°Р¶РјРёС‚Рµ С‡С‚РѕР±С‹ РЅР°Р·РЅР°С‡РёС‚СЊ РїР»Р°РЅ");
+                dataList.add(new TrainerDashboardItem(
+                        name,
+                        "Телефон: " + emptyToDash(phone),
+                        planId == -1
+                                ? "План ещё не создан. Нажмите, чтобы создать план и добавить упражнения."
+                                : "План уже есть. Нажмите, чтобы добавить упражнения к текущему плану.",
+                        planId == -1 ? "Создать план" : "Добавить упражнения"
+                ));
             } while (clients.moveToNext());
             clients.close();
 
-            adapter.notifyDataSetChanged();
-
             listView.setOnItemClickListener((parent, view, position, id) -> {
                 if (position < clientIds.size()) {
-                    showAssignPlanDialog(clientIds.get(position), clientNames.get(position));
+                    long planId = planIds.get(position);
+                    if (planId == -1) {
+                        showAssignPlanDialog(clientIds.get(position), clientNames.get(position));
+                    } else {
+                        showAddExercisesDialog(planId, clientNames.get(position));
+                    }
                 }
             });
         } else {
-            dataList.add("РЈ РІР°СЃ РїРѕРєР° РЅРµС‚ РєР»РёРµРЅС‚РѕРІ РґР»СЏ РЅР°Р·РЅР°С‡РµРЅРёСЏ РїР»Р°РЅР°");
-            adapter.notifyDataSetChanged();
+            listView.setOnItemClickListener(null);
+            dataList.add(new TrainerDashboardItem(
+                    "Некому назначить план",
+                    "У тренера пока нет клиентов",
+                    "После назначения клиентов администратором здесь можно будет создавать планы.",
+                    null
+            ));
         }
+
+        adapter.notifyDataSetChanged();
     }
 
     private void showAssignPlanDialog(final long clientId, String clientName) {
@@ -171,15 +221,15 @@ public class TrainerActivity extends AppCompatActivity {
 
         builder.setTitle(getString(R.string.trainer_assign_plan_title, clientName))
                 .setView(view)
-                .setPositiveButton("Р”Р°Р»РµРµ", (dialog, which) -> {
+                .setPositiveButton("Далее", (dialog, which) -> {
                     long planId = dbHelper.createWorkoutPlan(clientId, trainerId, etNotes.getText().toString());
                     if (planId != -1) {
                         showAddExercisesDialog(planId, clientName);
                     } else {
-                        Toast.makeText(this, "РћС€РёР±РєР° СЃРѕР·РґР°РЅРёСЏ РїР»Р°РЅР°", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Ошибка создания плана", Toast.LENGTH_SHORT).show();
                     }
                 })
-                .setNegativeButton("РћС‚РјРµРЅР°", null)
+                .setNegativeButton("Отмена", null)
                 .show();
     }
 
@@ -203,18 +253,38 @@ public class TrainerActivity extends AppCompatActivity {
 
         final AlertDialog dialog = builder.create();
 
+        Cursor existingExercises = dbHelper.getPlanExercises(planId);
+        if (existingExercises != null) {
+            try {
+                if (existingExercises.moveToFirst()) {
+                    do {
+                        String existingName = existingExercises.getString(existingExercises.getColumnIndexOrThrow(DatabaseHelper.COL_PE_EXERCISE_NAME));
+                        int existingSets = existingExercises.getInt(existingExercises.getColumnIndexOrThrow(DatabaseHelper.COL_PE_SETS));
+                        int existingReps = existingExercises.getInt(existingExercises.getColumnIndexOrThrow(DatabaseHelper.COL_PE_REPS));
+                        float existingWeight = existingExercises.getFloat(existingExercises.getColumnIndexOrThrow(DatabaseHelper.COL_PE_WEIGHT));
+
+                        exercisesList.append("- ").append(existingName).append(": ").append(existingSets)
+                                .append(" x ").append(existingReps).append(" (").append(formatWeight(existingWeight)).append(" кг)\n");
+                    } while (existingExercises.moveToNext());
+                    tvExercisesList.setText(exercisesList.toString());
+                }
+            } finally {
+                existingExercises.close();
+            }
+        }
+
         btnAdd.setOnClickListener(v -> {
             String name = etExerciseName.getText().toString().trim();
             if (!name.isEmpty()) {
                 try {
-                    int sets = Integer.parseInt(etSets.getText().toString());
-                    int reps = Integer.parseInt(etReps.getText().toString());
-                    float weight = Float.parseFloat(etWeight.getText().toString());
+                    int sets = Integer.parseInt(etSets.getText().toString().trim());
+                    int reps = Integer.parseInt(etReps.getText().toString().trim());
+                    float weight = Float.parseFloat(etWeight.getText().toString().trim().replace(',', '.'));
 
                     dbHelper.addExerciseToPlan(planId, name, sets, reps, weight);
 
-                    exercisesList.append("вЂў ").append(name).append(": ").append(sets)
-                            .append(" x ").append(reps).append(" (").append(weight).append(" РєРі)\n");
+                    exercisesList.append("- ").append(name).append(": ").append(sets)
+                            .append(" x ").append(reps).append(" (").append(formatWeight(weight)).append(" кг)\n");
                     tvExercisesList.setText(exercisesList.toString());
 
                     etExerciseName.setText("");
@@ -222,18 +292,18 @@ public class TrainerActivity extends AppCompatActivity {
                     etReps.setText("12");
                     etWeight.setText("50");
 
-                    Toast.makeText(this, "РЈРїСЂР°Р¶РЅРµРЅРёРµ РґРѕР±Р°РІР»РµРЅРѕ", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Упражнение добавлено", Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
-                    Toast.makeText(this, "РћС€РёР±РєР°: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             } else {
-                Toast.makeText(this, "Р’РІРµРґРёС‚Рµ РЅР°Р·РІР°РЅРёРµ СѓРїСЂР°Р¶РЅРµРЅРёСЏ", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Введите название упражнения", Toast.LENGTH_SHORT).show();
             }
         });
 
         btnFinish.setOnClickListener(v -> {
             dialog.dismiss();
-            Toast.makeText(this, "вњ“ РўСЂРµРЅРёСЂРѕРІРѕС‡РЅС‹Р№ РїР»Р°РЅ РЅР°Р·РЅР°С‡РµРЅ!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Тренировочный план назначен", Toast.LENGTH_LONG).show();
         });
 
         dialog.show();
@@ -252,5 +322,86 @@ public class TrainerActivity extends AppCompatActivity {
                 .setNegativeButton(getString(R.string.trainer_logout_negative), null)
                 .show();
     }
-}
 
+    private String emptyToDash(String value) {
+        return value == null || value.trim().isEmpty() ? "-" : value.trim();
+    }
+
+    private String formatWeight(float weight) {
+        if (weight == (int) weight) {
+            return String.valueOf((int) weight);
+        }
+        return String.format(Locale.US, "%.1f", weight);
+    }
+
+    private static class TrainerDashboardItem {
+        final String title;
+        final String meta;
+        final String detail;
+        final String action;
+
+        TrainerDashboardItem(String title, String meta, String detail, String action) {
+            this.title = title;
+            this.meta = meta;
+            this.detail = detail;
+            this.action = action;
+        }
+    }
+
+    private class TrainerDashboardAdapter extends BaseAdapter {
+        @Override
+        public int getCount() {
+            return dataList.size();
+        }
+
+        @Override
+        public TrainerDashboardItem getItem(int position) {
+            return dataList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View view = convertView;
+            ViewHolder holder;
+
+            if (view == null) {
+                view = LayoutInflater.from(TrainerActivity.this)
+                        .inflate(R.layout.item_trainer_dashboard, parent, false);
+                holder = new ViewHolder();
+                holder.title = view.findViewById(R.id.tvItemTitle);
+                holder.meta = view.findViewById(R.id.tvItemMeta);
+                holder.detail = view.findViewById(R.id.tvItemDetail);
+                holder.action = view.findViewById(R.id.tvItemAction);
+                view.setTag(holder);
+            } else {
+                holder = (ViewHolder) view.getTag();
+            }
+
+            TrainerDashboardItem item = getItem(position);
+            holder.title.setText(item.title);
+            holder.meta.setText(item.meta);
+            holder.detail.setText(item.detail);
+
+            if (item.action == null || item.action.isEmpty()) {
+                holder.action.setVisibility(View.GONE);
+            } else {
+                holder.action.setVisibility(View.VISIBLE);
+                holder.action.setText(item.action);
+            }
+
+            return view;
+        }
+    }
+
+    private static class ViewHolder {
+        TextView title;
+        TextView meta;
+        TextView detail;
+        TextView action;
+    }
+}

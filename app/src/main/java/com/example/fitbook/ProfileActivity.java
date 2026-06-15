@@ -33,6 +33,7 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!AuthGuard.requireLoggedIn(this)) return;
         setContentView(R.layout.activity_profile);
 
         dbHelper = new DatabaseHelper(this);

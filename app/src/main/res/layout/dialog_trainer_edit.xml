@@ -14,29 +14,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/inter"
-            android:gravity="center"
-            android:includeFontPadding="false"
-            android:text="Редактирование тренера"
-            android:textColor="@color/fitbook_text_primary"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:fontFamily="@font/inter"
-            android:gravity="center"
-            android:includeFontPadding="false"
-            android:text="Обновите данные сотрудника"
-            android:textColor="@color/fitbook_text_secondary"
-            android:textSize="12sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="6dp"
             android:layout_marginBottom="6dp"
             android:fontFamily="@font/inter"
             android:includeFontPadding="false"
@@ -168,7 +146,7 @@
                 android:layout_height="58dp"
                 android:fontFamily="@font/inter"
                 android:hint="Выберите специализацию"
-                android:inputType="text"
+                android:inputType="none"
                 android:minHeight="58dp"
                 android:paddingStart="16dp"
                 android:paddingTop="8dp"

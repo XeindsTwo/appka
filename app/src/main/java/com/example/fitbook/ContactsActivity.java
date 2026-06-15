@@ -20,6 +20,7 @@ public class ContactsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!AuthGuard.requireRole(this, "client")) return;
         setContentView(R.layout.activity_contacts);
 
         findViewById(R.id.btnContactsBack).setOnClickListener(v -> finish());

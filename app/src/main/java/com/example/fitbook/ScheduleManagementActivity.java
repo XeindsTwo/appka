@@ -8,7 +8,6 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -51,6 +50,7 @@ public class ScheduleManagementActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!AuthGuard.requireRole(this, "admin")) return;
         setContentView(R.layout.activity_schedule_management);
 
         dbHelper = new DatabaseHelper(this);
@@ -74,6 +74,7 @@ public class ScheduleManagementActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!AuthGuard.requireRole(this, "admin")) return;
         loadItems();
     }
 
@@ -120,7 +121,7 @@ public class ScheduleManagementActivity extends AppCompatActivity {
 
         tvType.setText(item.workoutType);
         tvTrainer.setText(item.trainerName);
-        tvDateTime.setText(item.date + " • " + item.time);
+        tvDateTime.setText(item.date + " | " + item.time);
         tvMeta.setText("Длительность: " + item.duration + " мин\nЗаполнено: " + item.currentClients + "/" + item.maxClients);
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(this).setView(view).create();
@@ -129,7 +130,7 @@ public class ScheduleManagementActivity extends AppCompatActivity {
     }
 
     private void showEditDialog(ScheduleItem item) {
-        View view = getLayoutInflater().inflate(R.layout.activity_add_schedule, null);
+        View view = getLayoutInflater().inflate(R.layout.dialog_schedule_edit, null);
         Spinner spinnerTrainer = view.findViewById(R.id.spinnerTrainer);
         TextInputEditText etWorkoutType = view.findViewById(R.id.etWorkoutType);
         TextInputEditText etDate = view.findViewById(R.id.etDate);
@@ -152,33 +153,36 @@ public class ScheduleManagementActivity extends AppCompatActivity {
         if (trainerNames.isEmpty()) {
             trainerNames.add("Нет тренеров");
         }
+
         UiFormUtils.attachDarkSpinner(this, spinnerTrainer, trainerNames);
         UiFormUtils.attachDatePicker(this, etDate);
         UiFormUtils.attachQuarterHourTimePicker(this, etTime);
 
-        int selectedIndex = 0;
         int trainerIndex = trainerIds.indexOf(item.trainerId);
-        if (trainerIndex >= 0) {
-            selectedIndex = trainerIndex;
-        }
-        spinnerTrainer.setSelection(selectedIndex);
+        spinnerTrainer.setSelection(Math.max(0, trainerIndex));
         etWorkoutType.setText(item.workoutType);
         etDate.setText(item.date);
-        etTime.setText(item.time);
+        etTime.setText(item.time, false);
         etDuration.setText(String.valueOf(item.duration));
         etMaxClients.setText(String.valueOf(item.maxClients));
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(this).setView(view).create();
+        btnSave.setText("Сохранить изменения");
+        btnCancel.setText("Отмена");
         btnSave.setOnClickListener(v -> {
             try {
                 if (trainerIds.isEmpty()) {
                     Toast.makeText(this, "Сначала добавьте тренера", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                long trainerId = trainerIds.get(spinnerTrainer.getSelectedItemPosition());
+                if (!isTimeInWorkRange(textOf(etTime))) {
+                    Toast.makeText(this, "Выберите время с 08:00 до 22:00", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 boolean success = dbHelper.updateSchedule(
                         item.id,
-                        trainerId,
+                        trainerIds.get(spinnerTrainer.getSelectedItemPosition()),
                         textOf(etWorkoutType),
                         textOf(etDate),
                         textOf(etTime),
@@ -216,7 +220,17 @@ public class ScheduleManagementActivity extends AppCompatActivity {
     }
 
     private String safe(String value) {
-        return value == null || value.trim().isEmpty() ? "—" : value;
+        return value == null || value.trim().isEmpty() ? "-" : value;
+    }
+
+    private boolean isTimeInWorkRange(String value) {
+        if (value == null || !value.matches("\\d{2}:\\d{2}")) {
+            return false;
+        }
+        int hour = Integer.parseInt(value.substring(0, 2));
+        int minute = Integer.parseInt(value.substring(3, 5));
+        int totalMinutes = hour * 60 + minute;
+        return totalMinutes >= 8 * 60 && totalMinutes <= 22 * 60;
     }
 
     private class ScheduleListAdapter extends BaseAdapter {
@@ -260,9 +274,9 @@ public class ScheduleManagementActivity extends AppCompatActivity {
 
         void bind(ScheduleItem item) {
             tvType.setText(item.workoutType);
-            tvDateTime.setText(item.date + " • " + item.time);
+            tvDateTime.setText(item.date + " | " + item.time);
             tvTrainer.setText(item.trainerName);
-            tvMeta.setText("Длительность: " + item.duration + " мин • " + item.currentClients + "/" + item.maxClients);
+            tvMeta.setText("Длительность: " + item.duration + " мин | " + item.currentClients + "/" + item.maxClients);
             root.setOnClickListener(v -> showDetails(item));
             btnEdit.setOnClickListener(v -> showEditDialog(item));
             btnDelete.setOnClickListener(v -> confirmDelete(item));

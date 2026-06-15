@@ -1,6 +1,7 @@
 package com.example.fitbook;
 
 import android.os.Bundle;
+import android.text.InputType;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,6 +22,7 @@ public class AddTrainerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!AuthGuard.requireRole(this, "admin")) return;
         setContentView(R.layout.activity_add_trainer);
 
         dbHelper = new DatabaseHelper(this);
@@ -31,6 +33,8 @@ public class AddTrainerActivity extends AppCompatActivity {
         etExperience = findViewById(R.id.etExperience);
 
         UiFormUtils.attachDarkDropdown(this, etSpecialization, java.util.Arrays.asList(getResources().getStringArray(R.array.specialization_options)));
+        etSpecialization.setInputType(InputType.TYPE_NULL);
+        etSpecialization.setKeyListener(null);
 
         MaterialButton btnSave = findViewById(R.id.btnSave);
         MaterialButton btnCancel = findViewById(R.id.btnCancel);

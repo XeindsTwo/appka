@@ -19,6 +19,7 @@ public class MembershipHistoryActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!AuthGuard.requireRole(this, "client")) return;
         setContentView(R.layout.activity_membership_history);
 
         dbHelper = new DatabaseHelper(this);
@@ -35,6 +36,7 @@ public class MembershipHistoryActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!AuthGuard.requireRole(this, "client")) return;
         renderHistory();
     }
 
@@ -59,13 +61,15 @@ public class MembershipHistoryActivity extends AppCompatActivity {
             String status = getMembershipStatusText(getCursorString(history, DatabaseHelper.COL_MEM_END_DATE, "—"));
             String startDate = getCursorString(history, DatabaseHelper.COL_MEM_START_DATE, "—");
             String endDate = getCursorString(history, DatabaseHelper.COL_MEM_END_DATE, "—");
-            String purchaseDate = getCursorString(history, DatabaseHelper.COL_MEM_PURCHASE_DATE, "—");
+            String purchaseDate = DateFormatUtils.formatRussianDate(getCursorString(history, DatabaseHelper.COL_MEM_PURCHASE_DATE, "—"));
+            String startDatePretty = DateFormatUtils.formatRussianDate(startDate);
+            String endDatePretty = DateFormatUtils.formatRussianDate(endDate);
 
             tvHistoryPlan.setText(planName);
             tvHistoryStatus.setText(status);
             tvHistoryPurchaseDate.setText(purchaseDate);
-            tvHistoryStartDate.setText(startDate);
-            tvHistoryEndDate.setText(endDate);
+            tvHistoryStartDate.setText(startDatePretty);
+            tvHistoryEndDate.setText(endDatePretty);
 
             historyContainer.addView(item);
         } while (history.moveToNext());

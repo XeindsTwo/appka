@@ -11,33 +11,11 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/inter"
-            android:gravity="center"
-            android:includeFontPadding="false"
-            android:text="Редактирование клиента"
-            android:textColor="@color/fitbook_text_primary"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:fontFamily="@font/inter"
-            android:gravity="center"
-            android:includeFontPadding="false"
-            android:text="Поля можно менять без потери данных"
-            android:textColor="@color/fitbook_text_secondary"
-            android:textSize="12sp" />
-
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.FitBook.LoginTextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="6dp"
             app:hintEnabled="false">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -67,6 +45,34 @@
                 android:textColor="@color/fitbook_text_primary"
                 android:textColorHint="@color/fitbook_text_hint" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="6dp"
+            android:fontFamily="@font/inter"
+            android:includeFontPadding="false"
+            android:text="Тренер"
+            android:textColor="@color/fitbook_text_secondary"
+            android:textSize="11sp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/fitbook_surface"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/fitbook_stroke"
+            app:strokeWidth="1dp">
+
+            <Spinner
+                android:id="@+id/spinnerTrainer"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp" />
+        </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.FitBook.LoginTextInputLayout"

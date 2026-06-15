@@ -8,7 +8,8 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -24,6 +25,7 @@ import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 
 public class TrainerManagementActivity extends AppCompatActivity {
@@ -31,10 +33,10 @@ public class TrainerManagementActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
     private final ArrayList<TrainerItem> allTrainerItems = new ArrayList<>();
     private final ArrayList<TrainerItem> visibleTrainerItems = new ArrayList<>();
-    private final ArrayList<String> visibleRows = new ArrayList<>();
     private TrainerListAdapter adapter;
     private EditText etSearch;
     private ListView listView;
+    private TextView tvEmptyTrainers;
 
     private static class TrainerItem {
         long id;
@@ -48,11 +50,13 @@ public class TrainerManagementActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!AuthGuard.requireRole(this, "admin")) return;
         setContentView(R.layout.activity_trainer_management);
 
         dbHelper = new DatabaseHelper(this);
         etSearch = findViewById(R.id.etSearch);
         listView = findViewById(R.id.listView);
+        tvEmptyTrainers = findViewById(R.id.tvEmptyTrainers);
         adapter = new TrainerListAdapter();
         listView.setAdapter(adapter);
 
@@ -70,6 +74,7 @@ public class TrainerManagementActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!AuthGuard.requireRole(this, "admin")) return;
         loadTrainers();
     }
 
@@ -94,18 +99,19 @@ public class TrainerManagementActivity extends AppCompatActivity {
 
     private void renderTrainers() {
         visibleTrainerItems.clear();
-        visibleRows.clear();
-
         String query = etSearch.getText() == null ? "" : etSearch.getText().toString().trim().toLowerCase(Locale.ROOT);
         for (TrainerItem item : allTrainerItems) {
             String blob = (safe(item.name) + " " + safe(item.phone) + " " + safe(item.email) + " " + safe(item.specialization)).toLowerCase(Locale.ROOT);
             if (query.isEmpty() || blob.contains(query)) {
                 visibleTrainerItems.add(item);
-                visibleRows.add(item.name);
             }
         }
 
         adapter.notifyDataSetChanged();
+        boolean isEmpty = visibleTrainerItems.isEmpty();
+        tvEmptyTrainers.setText(query.isEmpty() ? "Тренеров ещё нет" : "Тренеры не найдены");
+        listView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        tvEmptyTrainers.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
     }
 
     private void showTrainerInfo(TrainerItem item) {
@@ -117,7 +123,7 @@ public class TrainerManagementActivity extends AppCompatActivity {
         TextView tvEmail = view.findViewById(R.id.tvEmail);
 
         tvName.setText(item.name);
-        tvSpec.setText(item.specialization);
+        tvSpec.setText(safe(item.specialization));
         tvExperience.setText("Опыт: " + item.experience + " лет");
         tvPhone.setText("Телефон: " + safe(item.phone));
         tvEmail.setText("Email: " + safe(item.email));
@@ -129,6 +135,18 @@ public class TrainerManagementActivity extends AppCompatActivity {
         MaterialButton btnClose = view.findViewById(R.id.btnClose);
         btnClose.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
+
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setLayout(
+                    (int) (getResources().getDisplayMetrics().widthPixels * 0.92f),
+                    (int) (getResources().getDisplayMetrics().heightPixels * 0.78f)
+            );
+            window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+            WindowManager.LayoutParams params = window.getAttributes();
+            params.dimAmount = 0.82f;
+            window.setAttributes(params);
+        }
     }
 
     private void showEditTrainerDialog(TrainerItem item) {
@@ -144,9 +162,7 @@ public class TrainerManagementActivity extends AppCompatActivity {
         etEmail.setText(item.email);
         etSpecialization.setText(item.specialization, false);
         etExperience.setText(String.valueOf(item.experience));
-        ArrayAdapter<String> specializationAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, getResources().getStringArray(R.array.specialization_options));
-        specializationAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
-        etSpecialization.setAdapter(specializationAdapter);
+        UiFormUtils.attachDarkDropdown(this, etSpecialization, Arrays.asList(getResources().getStringArray(R.array.specialization_options)));
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(this)
                 .setView(view)
@@ -193,33 +209,18 @@ public class TrainerManagementActivity extends AppCompatActivity {
                 .show();
     }
 
-    private String textOf(TextInputEditText editText) {
-        return editText.getText() == null ? "" : editText.getText().toString().trim();
-    }
-
-    private String textOf(MaterialAutoCompleteTextView editText) {
+    private String textOf(TextView editText) {
         return editText.getText() == null ? "" : editText.getText().toString().trim();
     }
 
     private String safe(String value) {
-        return value == null || value.trim().isEmpty() ? "—" : value;
+        return value == null || value.trim().isEmpty() ? "-" : value;
     }
 
     private class TrainerListAdapter extends BaseAdapter {
-        @Override
-        public int getCount() {
-            return visibleTrainerItems.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return visibleTrainerItems.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return visibleTrainerItems.get(position).id;
-        }
+        @Override public int getCount() { return visibleTrainerItems.size(); }
+        @Override public Object getItem(int position) { return visibleTrainerItems.get(position); }
+        @Override public long getItemId(int position) { return visibleTrainerItems.get(position).id; }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
@@ -231,7 +232,6 @@ public class TrainerManagementActivity extends AppCompatActivity {
             } else {
                 holder = (TrainerRowHolder) convertView.getTag();
             }
-
             holder.bind(visibleTrainerItems.get(position));
             return convertView;
         }
@@ -256,8 +256,8 @@ public class TrainerManagementActivity extends AppCompatActivity {
 
         void bind(TrainerItem item) {
             tvName.setText(item.name);
-            tvSpec.setText(item.specialization);
-            tvMeta.setText(item.phone + " • " + item.experience + " лет");
+            tvSpec.setText(safe(item.specialization));
+            tvMeta.setText(safe(item.phone) + " | " + item.experience + " лет");
             root.setOnClickListener(v -> showTrainerInfo(item));
             btnEdit.setOnClickListener(v -> showEditTrainerDialog(item));
             btnDelete.setOnClickListener(v -> confirmDeleteTrainer(item));

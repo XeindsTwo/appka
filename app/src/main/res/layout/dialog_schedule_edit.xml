@@ -152,6 +152,7 @@
                     android:fontFamily="@font/inter"
                     android:hint="@string/dialog_schedule_time_hint"
                     android:inputType="none"
+                    android:keyListener="@null"
                     android:minHeight="58dp"
                     android:paddingStart="16dp"
                     android:paddingTop="8dp"

@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:gravity="center"
-            android:text="Соберите тренировочный блок" />
+            android:text="Соберите тренировочный блок для клиента" />
 
         <TextView
             style="@style/TextAppearance.FitBook.DialogLabel"
@@ -67,9 +67,9 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginEnd="6dp">
+                android:orientation="vertical">
 
                 <TextView
                     style="@style/TextAppearance.FitBook.DialogLabel"
@@ -105,9 +105,9 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="6dp">
+                android:orientation="vertical">
 
                 <TextView
                     style="@style/TextAppearance.FitBook.DialogLabel"
@@ -175,9 +175,15 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddExercise"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:layout_marginTop="16dp"
-            android:text="Добавить в план" />
+            android:fontFamily="@font/inter"
+            android:text="Добавить в план"
+            android:textAllCaps="false"
+            android:textColor="@color/fitbook_text_on_accent"
+            android:textStyle="bold"
+            app:backgroundTint="@color/fitbook_primary"
+            app:cornerRadius="22dp" />
 
         <TextView
             style="@style/TextAppearance.FitBook.DialogSubtitle"
@@ -214,9 +220,17 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFinish"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:layout_marginTop="16dp"
-            android:text="Завершить и сохранить план" />
+            android:fontFamily="@font/inter"
+            android:text="Завершить и сохранить план"
+            android:textAllCaps="false"
+            android:textColor="@color/fitbook_primary"
+            android:textStyle="bold"
+            app:cornerRadius="22dp"
+            app:strokeColor="@color/fitbook_primary"
+            app:strokeWidth="1dp" />
     </LinearLayout>
 </ScrollView>

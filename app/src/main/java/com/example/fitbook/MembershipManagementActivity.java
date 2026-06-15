@@ -44,6 +44,7 @@ public class MembershipManagementActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!AuthGuard.requireRole(this, "admin")) return;
         setContentView(R.layout.activity_membership_management);
 
         dbHelper = new DatabaseHelper(this);
@@ -67,12 +68,13 @@ public class MembershipManagementActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!AuthGuard.requireRole(this, "admin")) return;
         loadItems();
     }
 
     private void loadItems() {
         allItems.clear();
-        Cursor types = dbHelper.getAllMembershipTypes();
+        Cursor types = dbHelper.getAllMembershipTypesAdmin();
         if (types != null) {
             while (types.moveToNext()) {
                 MembershipItem item = new MembershipItem();

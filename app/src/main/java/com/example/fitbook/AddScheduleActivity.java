@@ -27,6 +27,7 @@ public class AddScheduleActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!AuthGuard.requireRole(this, "admin")) return;
         setContentView(R.layout.activity_add_schedule);
 
         dbHelper = new DatabaseHelper(this);
@@ -43,6 +44,7 @@ public class AddScheduleActivity extends AppCompatActivity {
         UiFormUtils.attachDatePicker(this, etDate);
         UiFormUtils.attachQuarterHourTimePicker(this, etTime);
         loadTrainers();
+
         btnSave.setOnClickListener(v -> saveSchedule());
         btnCancel.setOnClickListener(v -> finish());
     }
@@ -84,6 +86,11 @@ public class AddScheduleActivity extends AppCompatActivity {
             return;
         }
 
+        if (!isTimeInWorkRange(time)) {
+            Toast.makeText(this, "Выберите время с 08:00 до 22:00", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         try {
             int duration = Integer.parseInt(durationText);
             int maxClients = Integer.parseInt(maxClientsText);
@@ -100,5 +107,15 @@ public class AddScheduleActivity extends AppCompatActivity {
 
     private String getText(android.widget.TextView editText) {
         return editText.getText() == null ? "" : editText.getText().toString().trim();
+    }
+
+    private boolean isTimeInWorkRange(String value) {
+        if (value == null || !value.matches("\\d{2}:\\d{2}")) {
+            return false;
+        }
+        int hour = Integer.parseInt(value.substring(0, 2));
+        int minute = Integer.parseInt(value.substring(3, 5));
+        int totalMinutes = hour * 60 + minute;
+        return totalMinutes >= 8 * 60 && totalMinutes <= 22 * 60;
     }
 }

@@ -1,4 +1,4 @@
-package com.example.fitbook;
+﻿package com.example.fitbook;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -37,13 +37,14 @@ public class ClientActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!AuthGuard.requireRole(this, "client")) return;
         setContentView(R.layout.activity_client);
 
         dbHelper = new DatabaseHelper(this);
 
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         clientId = prefs.getLong(DatabaseHelper.COL_USER_ID, 0);
-        String clientName = prefs.getString(DatabaseHelper.COL_FULL_NAME, "Р С™Р В»Р С‘Р ВµР Р…РЎвЂљ");
+        String clientName = prefs.getString(DatabaseHelper.COL_FULL_NAME, "Клиент");
         itemIds = new ArrayList<>();
         tvClientName = findViewById(R.id.tvClientName);
         tvMembershipType = findViewById(R.id.tvMembershipType);
@@ -63,10 +64,10 @@ public class ClientActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<>(this, R.layout.item_dark_list_text, dataList);
         listView.setAdapter(adapter);
 
-        // Р В РЎв„ўР В Р вЂ¦Р В РЎвЂўР В РЎвЂ”Р В РЎвЂќР В РЎвЂ
-        findViewById(R.id.btnAvailableWorkouts).setOnClickListener(v -> loadAvailableWorkouts());
-        findViewById(R.id.btnMyBookings).setOnClickListener(v -> loadMyBookings());
-        findViewById(R.id.btnMyPlan).setOnClickListener(v -> loadMyPlan());
+        // Кнопки
+        findViewById(R.id.btnAvailableWorkouts).setOnClickListener(v -> startActivity(new Intent(this, ClientWorkoutsActivity.class)));
+        findViewById(R.id.btnMyBookings).setOnClickListener(v -> startActivity(new Intent(this, ClientBookingsActivity.class)));
+        findViewById(R.id.btnMyPlan).setOnClickListener(v -> startActivity(new Intent(this, ClientPlanActivity.class)));
         findViewById(R.id.btnAnthropometry).setOnClickListener(v -> showAnthropometryDialog());
         findViewById(R.id.btnOpenProfile).setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
         findViewById(R.id.cardMembershipSummary).setOnClickListener(v -> openMembershipsScreen());
@@ -84,20 +85,17 @@ public class ClientActivity extends AppCompatActivity {
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_workouts) {
-                tvSectionTitle.setText(getString(R.string.client_workouts_title));
-                loadAvailableWorkouts();
+                startActivity(new Intent(this, ClientWorkoutsActivity.class));
                 return true;
             } else if (itemId == R.id.nav_bookings) {
                 tvSectionTitle.setText(getString(R.string.client_bookings_title));
                 loadMyBookings();
                 return true;
             } else if (itemId == R.id.nav_plan) {
-                tvSectionTitle.setText(getString(R.string.client_plan_title));
-                loadMyPlan();
+                startActivity(new Intent(this, ClientPlanActivity.class));
                 return true;
             } else if (itemId == R.id.nav_progress) {
-                tvSectionTitle.setText(getString(R.string.client_progress_title));
-                showProgress();
+                startActivity(new Intent(this, ClientProgressActivity.class));
                 return true;
             } else if (itemId == R.id.nav_contacts) {
                 startActivity(new Intent(this, ContactsActivity.class));
@@ -219,11 +217,11 @@ public class ClientActivity extends AppCompatActivity {
 
                     scheduleIds.add(scheduleId);
 
-                    String workoutInfo = "РЎР‚РЎСџР РЏРІР‚в„–Р С—РЎвЂР РЏ " + workoutType +
-                            "\nРЎР‚РЎСџРІР‚СљРІР‚В¦ " + date + " " + time + " (" + duration + " Р В РЎВР В РЎвЂР В Р вЂ¦)" +
-                            "\nРЎР‚РЎСџРІР‚ВР РѓР Р†Р вЂљР РЉРЎР‚РЎСџР РЏР’В« Р В РЎС›Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В Р’ВµР РЋР вЂљ: " + trainer +
-                            "\nРЎР‚РЎСџРІР‚ВРўС’ Р В Р Р‹Р В Р вЂ Р В РЎвЂўР В Р’В±Р В РЎвЂўР В РўвЂР В Р вЂ¦Р В РЎвЂў Р В РЎВР В Р’ВµР РЋР С“Р РЋРІР‚С™: " + (max - current) + "/" + max +
-                            "\nР Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“\nР Р†РЎвЂєР Р‹Р С—РЎвЂР РЏ Р В РЎСљР В РЎвЂ™Р В РІР‚вЂњР В РЎС™Р В Р’ВР В РЎС›Р В РІР‚Сћ Р В РІР‚СњР В РІР‚С”Р В Р вЂЎ Р В РІР‚вЂќР В РЎвЂ™Р В РЎСџР В Р’ВР В Р Р‹Р В Р’В";
+                    String workoutInfo = workoutType +
+                            "\nДата: " + DateFormatUtils.formatRussianDate(date) + " " + time + " (" + duration + " мин)" +
+                            "\nТренер: " + trainer +
+                            "\nСвободно мест: " + (max - current) + "/" + max +
+                            "\nНажмите для записи";
                     dataList.add(workoutInfo);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -232,7 +230,7 @@ public class ClientActivity extends AppCompatActivity {
             workouts.close();
 
             if (dataList.isEmpty()) {
-                dataList.add("РЎР‚РЎСџРІР‚СљРІР‚В¦ Р В РЎСљР В Р’ВµР РЋРІР‚С™ Р В РўвЂР В РЎвЂўР РЋР С“Р РЋРІР‚С™Р РЋРЎвЂњР В РЎвЂ”Р В Р вЂ¦Р РЋРІР‚в„–Р РЋРІР‚В¦ Р РЋРІР‚С™Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР вЂљР В РЎвЂўР В Р вЂ Р В РЎвЂўР В РЎвЂќ Р В Р вЂ¦Р В Р’В° Р В Р’В±Р В Р’В»Р В РЎвЂР В Р’В¶Р В Р’В°Р В РІвЂћвЂ“Р РЋРІвЂљВ¬Р В РЎвЂР В Р’Вµ Р В РўвЂР В Р вЂ¦Р В РЎвЂ");
+            dataList.add("Нет доступных тренировок на ближайшие дни");
             }
 
             adapter.notifyDataSetChanged();
@@ -243,7 +241,7 @@ public class ClientActivity extends AppCompatActivity {
                 }
             });
         } else {
-            dataList.add("РЎР‚РЎСџРІР‚СљРІР‚В¦ Р В РЎСљР В Р’ВµР РЋРІР‚С™ Р В РўвЂР В РЎвЂўР РЋР С“Р РЋРІР‚С™Р РЋРЎвЂњР В РЎвЂ”Р В Р вЂ¦Р РЋРІР‚в„–Р РЋРІР‚В¦ Р РЋРІР‚С™Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР вЂљР В РЎвЂўР В Р вЂ Р В РЎвЂўР В РЎвЂќ");
+            dataList.add("Нет доступных тренировок");
             if (workouts != null) workouts.close();
             adapter.notifyDataSetChanged();
         }
@@ -252,11 +250,11 @@ public class ClientActivity extends AppCompatActivity {
     private void bookWorkout(long scheduleId) {
         boolean success = dbHelper.bookWorkout(scheduleId, clientId);
         if (success) {
-            Toast.makeText(this, "Р Р†РЎС™РІР‚Сљ Р В РІР‚в„ўР РЋРІР‚в„– Р РЋРЎвЂњР РЋР С“Р В РЎвЂ”Р В Р’ВµР РЋРІвЂљВ¬Р В Р вЂ¦Р В РЎвЂў Р В Р’В·Р В Р’В°Р В РЎвЂ”Р В РЎвЂР РЋР С“Р В Р’В°Р В Р’В»Р В РЎвЂР РЋР С“Р РЋР Р‰ Р В Р вЂ¦Р В Р’В° Р РЋРІР‚С™Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР вЂљР В РЎвЂўР В Р вЂ Р В РЎвЂќР РЋРЎвЂњ!", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Вы успешно записались на тренировку", Toast.LENGTH_LONG).show();
             loadAvailableWorkouts();
             loadMyBookings();
         } else {
-            Toast.makeText(this, "Р Р†РЎСљР Р‰ Р В РЎСљР В Р’Вµ Р РЋРЎвЂњР В РўвЂР В Р’В°Р В Р’В»Р В РЎвЂўР РЋР С“Р РЋР Р‰ Р В Р’В·Р В Р’В°Р В РЎвЂ”Р В РЎвЂР РЋР С“Р В Р’В°Р РЋРІР‚С™Р РЋР Р‰Р РЋР С“Р РЋР РЏ. Р В РІР‚в„ўР В РЎвЂўР В Р’В·Р В РЎВР В РЎвЂўР В Р’В¶Р В Р вЂ¦Р В РЎвЂў, Р В РЎВР В Р’ВµР РЋР С“Р РЋРІР‚С™ Р РЋРЎвЂњР В Р’В¶Р В Р’Вµ Р В Р вЂ¦Р В Р’ВµР РЋРІР‚С™.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Не удалось записаться. Возможно, мест уже нет.", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -277,18 +275,16 @@ public class ClientActivity extends AppCompatActivity {
 
                 bookingIds.add(bookingId);
 
-                String statusEmoji = status.equals("confirmed") ? "Р Р†Р РЏРЎвЂ“ Р В РЎвЂєР В Р’В¶Р В РЎвЂР В РўвЂР В Р’В°Р В Р’ВµР РЋРІР‚С™" :
-                        (status.equals("completed") ? "Р Р†РЎС™РІР‚В¦ Р В РІР‚в„ўР РЋРІР‚в„–Р В РЎвЂ”Р В РЎвЂўР В Р’В»Р В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р В РЎвЂў" : "Р Р†РЎСљР Р‰ Р В РЎвЂєР РЋРІР‚С™Р В РЎВР В Р’ВµР В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р В РЎвЂў");
-                String statusIcon = status.equals("confirmed") ? "Р Р†Р РЏРЎвЂ“" :
-                        (status.equals("completed") ? "Р Р†РЎС™РІР‚В¦" : "Р Р†РЎСљР Р‰");
+                String statusText = status.equals("confirmed") ? "Ожидает" :
+                        (status.equals("completed") ? "Выполнено" : "Отменено");
 
-                dataList.add(statusIcon + " " + workoutType +
-                        "\nРЎР‚РЎСџРІР‚СљРІР‚В¦ " + date + " " + time +
-                        "\nРЎР‚РЎСџРІР‚ВР РѓР Р†Р вЂљР РЉРЎР‚РЎСџР РЏР’В« Р В РЎС›Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В Р’ВµР РЋР вЂљ: " + trainer +
-                        "\nРЎР‚РЎСџРІР‚СљР Р‰ Р В Р Р‹Р РЋРІР‚С™Р В Р’В°Р РЋРІР‚С™Р РЋРЎвЂњР РЋР С“: " + statusEmoji);
+                dataList.add(workoutType +
+                        "\nДата: " + DateFormatUtils.formatRussianDate(date) + " " + time +
+                        "\nТренер: " + trainer +
+                        "\nСтатус: " + statusText);
 
                 if (status.equals("confirmed")) {
-                    dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“\nР Р†РЎвЂєР Р‹Р С—РЎвЂР РЏ Р В РЎСљР В Р’В°Р В Р’В¶Р В РЎВР В РЎвЂР РЋРІР‚С™Р В Р’Вµ Р РЋРІР‚РЋР РЋРІР‚С™Р В РЎвЂўР В Р’В±Р РЋРІР‚в„– Р В РЎвЂўР РЋРІР‚С™Р В РЎВР В Р’ВµР РЋРІР‚С™Р В РЎвЂР РЋРІР‚С™Р РЋР Р‰ Р В Р вЂ Р РЋРІР‚в„–Р В РЎвЂ”Р В РЎвЂўР В Р’В»Р В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р В РЎвЂР В Р’Вµ");
+                dataList.add("Нажмите, чтобы отметить выполнение");
                 }
             } while (bookings.moveToNext());
             bookings.close();
@@ -308,7 +304,7 @@ public class ClientActivity extends AppCompatActivity {
                 }
             });
         } else {
-            dataList.add("Р В Р в‚¬ Р В Р вЂ Р В Р’В°Р РЋР С“ Р В РЎвЂ”Р В РЎвЂўР В РЎвЂќР В Р’В° Р В Р вЂ¦Р В Р’ВµР РЋРІР‚С™ Р В Р’В·Р В Р’В°Р В РЎвЂ”Р В РЎвЂР РЋР С“Р В Р’ВµР В РІвЂћвЂ“ Р В Р вЂ¦Р В Р’В° Р РЋРІР‚С™Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР вЂљР В РЎвЂўР В Р вЂ Р В РЎвЂќР В РЎвЂ");
+            dataList.add("У вас пока нет записей на тренировки");
             adapter.notifyDataSetChanged();
         }
     }
@@ -323,13 +319,12 @@ public class ClientActivity extends AppCompatActivity {
             String notes = plan.getString(plan.getColumnIndexOrThrow(DatabaseHelper.COL_PLAN_NOTES));
             long planId = plan.getLong(plan.getColumnIndexOrThrow(DatabaseHelper.COL_PLAN_ID));
 
-            dataList.add("РЎР‚РЎСџРІР‚СљРІР‚в„– Р В РЎС›Р В Р’В Р В РІР‚СћР В РЎСљР В Р’ВР В Р’В Р В РЎвЂєР В РІР‚в„ўР В РЎвЂєР В Р’В§Р В РЎСљР В Р’В«Р В РІвЂћСћ Р В РЎСџР В РІР‚С”Р В РЎвЂ™Р В РЎСљ");
-            dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
-            dataList.add("РЎР‚РЎСџРІР‚ВР РѓР Р†Р вЂљР РЉРЎР‚РЎСџР РЏР’В« Р В РЎС›Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В Р’ВµР РЋР вЂљ: " + trainerName);
-            dataList.add("РЎР‚РЎСџРІР‚СљРІР‚В¦ Р В РЎСљР В Р’В°Р В Р’В·Р В Р вЂ¦Р В Р’В°Р РЋРІР‚РЋР В Р’ВµР В Р вЂ¦: " + assignedDate);
-            dataList.add("РЎР‚РЎСџРІР‚СљРЎСљ Р В РІР‚вЂќР В Р’В°Р В РЎВР В Р’ВµР РЋРІР‚С™Р В РЎвЂќР В РЎвЂ: " + notes);
+            dataList.add("Тренировочный план");
+            dataList.add("Тренер: " + trainerName);
+            dataList.add("Назначен: " + DateFormatUtils.formatRussianDate(assignedDate));
+            dataList.add("Заметки: " + notes);
             dataList.add("");
-            dataList.add("РЎР‚РЎСџР РЏРІР‚в„–Р С—РЎвЂР РЏ Р В Р в‚¬Р В РЎСџР В Р’В Р В РЎвЂ™Р В РІР‚вЂњР В РЎСљР В РІР‚СћР В РЎСљР В Р’ВР В Р вЂЎ:");
+            dataList.add("Упражнения:");
 
             Cursor exercises = dbHelper.getPlanExercises(planId);
             if (exercises != null && exercises.moveToFirst()) {
@@ -339,20 +334,19 @@ public class ClientActivity extends AppCompatActivity {
                     int reps = exercises.getInt(exercises.getColumnIndexOrThrow(DatabaseHelper.COL_PE_REPS));
                     float weight = exercises.getFloat(exercises.getColumnIndexOrThrow(DatabaseHelper.COL_PE_WEIGHT));
 
-                    dataList.add("   Р Р†Р вЂљРЎС› " + exName + ": " + sets + " x " + reps + " (" + weight + " Р В РЎвЂќР В РЎвЂ“)");
+                    dataList.add(exName + ": " + sets + " x " + reps + " (" + weight + " кг)");
                 } while (exercises.moveToNext());
                 exercises.close();
             } else {
-                dataList.add("   Р В РЎСљР В Р’ВµР РЋРІР‚С™ Р В РўвЂР В РЎвЂўР В Р’В±Р В Р’В°Р В Р вЂ Р В Р’В»Р В Р’ВµР В Р вЂ¦Р В Р вЂ¦Р РЋРІР‚в„–Р РЋРІР‚В¦ Р РЋРЎвЂњР В РЎвЂ”Р РЋР вЂљР В Р’В°Р В Р’В¶Р В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р В РЎвЂР В РІвЂћвЂ“");
+                dataList.add("Нет добавленных упражнений");
             }
             plan.close();
         } else {
-            dataList.add("РЎР‚РЎСџРІР‚СљРІР‚в„– Р В РЎС›Р В Р’В Р В РІР‚СћР В РЎСљР В Р’ВР В Р’В Р В РЎвЂєР В РІР‚в„ўР В РЎвЂєР В Р’В§Р В РЎСљР В Р’В«Р В РІвЂћСћ Р В РЎСџР В РІР‚С”Р В РЎвЂ™Р В РЎСљ");
-            dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
-            dataList.add("Р В Р в‚¬ Р В Р вЂ Р В Р’В°Р РЋР С“ Р В РЎвЂ”Р В РЎвЂўР В РЎвЂќР В Р’В° Р В Р вЂ¦Р В Р’ВµР РЋРІР‚С™ Р В Р вЂ¦Р В Р’В°Р В Р’В·Р В Р вЂ¦Р В Р’В°Р РЋРІР‚РЋР В Р’ВµР В Р вЂ¦Р В Р вЂ¦Р В РЎвЂўР В РЎвЂ“Р В РЎвЂў Р В РЎвЂ”Р В Р’В»Р В Р’В°Р В Р вЂ¦Р В Р’В°");
+            dataList.add("Тренировочный план");
+            dataList.add("У вас пока нет назначенного плана");
             dataList.add("");
-            dataList.add("Р В РЎвЂєР В Р’В±Р РЋР вЂљР В Р’В°Р РЋРІР‚С™Р В РЎвЂР РЋРІР‚С™Р В Р’ВµР РЋР С“Р РЋР Р‰ Р В РЎвЂќ Р В Р вЂ Р В Р’В°Р РЋРІвЂљВ¬Р В Р’ВµР В РЎВР РЋРЎвЂњ Р РЋРІР‚С™Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В Р’ВµР РЋР вЂљР РЋРЎвЂњ");
-            dataList.add("Р В РўвЂР В Р’В»Р РЋР РЏ Р РЋР С“Р В РЎвЂўР РЋР С“Р РЋРІР‚С™Р В Р’В°Р В Р вЂ Р В Р’В»Р В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР РЏ Р В РЎвЂ”Р РЋР вЂљР В РЎвЂўР В РЎвЂ“Р РЋР вЂљР В Р’В°Р В РЎВР В РЎВР РЋРІР‚в„– Р РЋРІР‚С™Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР вЂљР В РЎвЂўР В Р вЂ Р В РЎвЂўР В РЎвЂќ");
+            dataList.add("Обратитесь к вашему тренеру");
+            dataList.add("для составления программы тренировок");
         }
         adapter.notifyDataSetChanged();
     }
@@ -367,9 +361,9 @@ public class ClientActivity extends AppCompatActivity {
         final EditText etChest = view.findViewById(R.id.etChest);
         final EditText etWaist = view.findViewById(R.id.etWaist);
 
-        builder.setTitle("РЎР‚РЎСџРІР‚СљР РЏ Р В РІР‚вЂќР В Р’В°Р В РЎВР В Р’ВµР РЋР вЂљР РЋРІР‚в„– Р РЋРІР‚С™Р В Р’ВµР В Р’В»Р В Р’В°")
+        builder.setTitle("Замеры тела")
                 .setView(view)
-                .setPositiveButton("Р В Р Р‹Р В РЎвЂўР РЋРІР‚В¦Р РЋР вЂљР В Р’В°Р В Р вЂ¦Р В РЎвЂР РЋРІР‚С™Р РЋР Р‰", (dialog, which) -> {
+                .setPositiveButton("Сохранить", (dialog, which) -> {
                     try {
                         String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
                         float weight = Float.parseFloat(etWeight.getText().toString());
@@ -379,29 +373,27 @@ public class ClientActivity extends AppCompatActivity {
                         float waist = Float.parseFloat(etWaist.getText().toString());
 
                         boolean success = dbHelper.saveMeasurement(clientId, date, weight, height, biceps, chest, waist);
-                        Toast.makeText(this, success ? "Р Р†РЎС™РІР‚Сљ Р В РІР‚вЂќР В Р’В°Р В РЎВР В Р’ВµР РЋР вЂљР РЋРІР‚в„– Р РЋР С“Р В РЎвЂўР РЋРІР‚В¦Р РЋР вЂљР В Р’В°Р В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р РЋРІР‚в„–!" : "Р Р†РЎСљР Р‰ Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р РЋР С“Р В РЎвЂўР РЋРІР‚В¦Р РЋР вЂљР В Р’В°Р В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР РЏ", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, success ? "Замеры сохранены" : "Ошибка сохранения", Toast.LENGTH_SHORT).show();
                         if (success) showProgress();
                     } catch (Exception e) {
-                        Toast.makeText(this, "Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В°: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 })
-                .setNegativeButton("Р В РЎвЂєР РЋРІР‚С™Р В РЎВР В Р’ВµР В Р вЂ¦Р В Р’В°", null)
+                .setNegativeButton("Отмена", null)
                 .show();
     }
 
     private void showProgress() {
         dataList.clear();
 
-        // Р В Р Р‹Р РЋРІР‚С™Р В Р’В°Р РЋРІР‚С™Р В РЎвЂР РЋР С“Р РЋРІР‚С™Р В РЎвЂР В РЎвЂќР В Р’В° Р РЋРІР‚С™Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР вЂљР В РЎвЂўР В Р вЂ Р В РЎвЂўР В РЎвЂќ
+        // Статистика тренировок
         int completedCount = dbHelper.getCompletedWorkoutsCount(clientId);
-        dataList.add("РЎР‚РЎСџР РЏРІР‚В  Р В Р Р‹Р В РЎС›Р В РЎвЂ™Р В РЎС›Р В Р’ВР В Р Р‹Р В РЎС›Р В Р’ВР В РЎв„ўР В РЎвЂ™ Р В РЎС›Р В Р’В Р В РІР‚СћР В РЎСљР В Р’ВР В Р’В Р В РЎвЂєР В РІР‚в„ўР В РЎвЂєР В РЎв„ў");
-        dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
-        dataList.add("Р Р†РЎС™РІР‚В¦ Р В РЎСџР РЋР вЂљР В РЎвЂўР В Р вЂ Р В Р’ВµР В РўвЂР В Р’ВµР В Р вЂ¦Р В РЎвЂў Р РЋРІР‚С™Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР вЂљР В РЎвЂўР В Р вЂ Р В РЎвЂўР В РЎвЂќ: " + completedCount);
+        dataList.add("Статистика тренировок");
+        dataList.add("Проведено тренировок: " + completedCount);
         dataList.add("");
 
-        // Р В Р’ВР РЋР С“Р РЋРІР‚С™Р В РЎвЂўР РЋР вЂљР В РЎвЂР РЋР РЏ Р В Р’В·Р В Р’В°Р В РЎВР В Р’ВµР РЋР вЂљР В РЎвЂўР В Р вЂ 
-        dataList.add("РЎР‚РЎСџРІР‚СљР вЂ° Р В Р’ВР В Р Р‹Р В РЎС›Р В РЎвЂєР В Р’В Р В Р’ВР В Р вЂЎ Р В РІР‚вЂќР В РЎвЂ™Р В РЎС™Р В РІР‚СћР В Р’В Р В РЎвЂєР В РІР‚в„ў");
-        dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
+        // История замеров
+        dataList.add("История замеров");
 
         Cursor measurements = dbHelper.getAllMeasurements(clientId);
         if (measurements != null && measurements.moveToFirst()) {
@@ -419,11 +411,11 @@ public class ClientActivity extends AppCompatActivity {
                 lastWeight = weight;
                 count++;
 
-                dataList.add("РЎР‚РЎСџРІР‚СљРІР‚В¦ " + date);
-                dataList.add("   Р Р†РЎв„ўРІР‚вЂњР С—РЎвЂР РЏ Р В РІР‚в„ўР В Р’ВµР РЋР С“: " + weight + " Р В РЎвЂќР В РЎвЂ“");
-                dataList.add("   РЎР‚РЎСџРІР‚в„ўР вЂћ Р В РІР‚ВР В РЎвЂР РЋРІР‚В Р В Р’ВµР В РЎвЂ”Р РЋР С“: " + biceps + " Р РЋР С“Р В РЎВ");
-                dataList.add("   РЎР‚РЎСџРІР‚СљР РЏ Р В РІР‚СљР РЋР вЂљР РЋРЎвЂњР В РўвЂР В Р вЂ¦Р В Р’В°Р РЋР РЏ Р В РЎвЂќР В Р’В»Р В Р’ВµР РЋРІР‚С™Р В РЎвЂќР В Р’В°: " + chest + " Р РЋР С“Р В РЎВ");
-                dataList.add("   РЎР‚РЎСџР вЂ№Р вЂЎ Р В РЎС›Р В Р’В°Р В Р’В»Р В РЎвЂР РЋР РЏ: " + waist + " Р РЋР С“Р В РЎВ");
+                dataList.add(DateFormatUtils.formatRussianDate(date));
+                dataList.add("Вес: " + weight + " кг");
+                dataList.add("Бицепс: " + biceps + " см");
+                dataList.add("Грудная клетка: " + chest + " см");
+                dataList.add("Талия: " + waist + " см");
                 dataList.add("");
 
             } while (measurements.moveToNext());
@@ -432,13 +424,13 @@ public class ClientActivity extends AppCompatActivity {
             if (count >= 2 && firstWeight != -1 && lastWeight != -1) {
                 float weightChange = lastWeight - firstWeight;
                 String changeText = weightChange > 0 ? "+" + String.format("%.1f", weightChange) : String.format("%.1f", weightChange);
-                dataList.add("РЎР‚РЎСџРІР‚СљРІвЂљВ¬ Р В Р’ВР В РЎС›Р В РЎвЂєР В РІР‚СљР В РЎвЂєР В РІР‚в„ўР В Р’В«Р В РІвЂћСћ Р В РЎСџР В Р’В Р В РЎвЂєР В РІР‚СљР В Р’В Р В РІР‚СћР В Р Р‹Р В Р Р‹:");
-                dataList.add("   Р В Р’ВР В Р’В·Р В РЎВР В Р’ВµР В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р В РЎвЂР В Р’Вµ Р В Р вЂ Р В Р’ВµР РЋР С“Р В Р’В°: " + changeText + " Р В РЎвЂќР В РЎвЂ“");
-                dataList.add("   Р В РЎв„ўР В РЎвЂўР В Р’В»Р В РЎвЂР РЋРІР‚РЋР В Р’ВµР РЋР С“Р РЋРІР‚С™Р В Р вЂ Р В РЎвЂў Р В Р’В·Р В Р’В°Р В РЎВР В Р’ВµР РЋР вЂљР В РЎвЂўР В Р вЂ : " + count);
+                dataList.add("Итоговый прогресс:");
+                dataList.add("Изменение веса: " + changeText + " кг");
+                dataList.add("Количество замеров: " + count);
             }
         } else {
-            dataList.add("Р В РЎСљР В Р’ВµР РЋРІР‚С™ Р В РўвЂР В Р’В°Р В Р вЂ¦Р В Р вЂ¦Р РЋРІР‚в„–Р РЋРІР‚В¦ Р В РЎвЂў Р В Р’В·Р В Р’В°Р В РЎВР В Р’ВµР РЋР вЂљР В Р’В°Р РЋРІР‚В¦");
-            dataList.add("Р В РІР‚СњР В РЎвЂўР В Р’В±Р В Р’В°Р В Р вЂ Р РЋР Р‰Р РЋРІР‚С™Р В Р’Вµ Р В РЎвЂ”Р В Р’ВµР РЋР вЂљР В Р вЂ Р РЋРІР‚в„–Р В РІвЂћвЂ“ Р В Р’В·Р В Р’В°Р В РЎВР В Р’ВµР РЋР вЂљ Р В Р вЂ  Р РЋР вЂљР В Р’В°Р В Р’В·Р В РўвЂР В Р’ВµР В Р’В»Р В Р’Вµ 'Р В РІР‚вЂќР В Р’В°Р В РЎВР В Р’ВµР РЋР вЂљР РЋРІР‚в„–'");
+            dataList.add("Нет данных о замерах");
+            dataList.add("Добавьте первый замер в разделе Замеры");
         }
 
         adapter.notifyDataSetChanged();
@@ -454,14 +446,14 @@ public class ClientActivity extends AppCompatActivity {
         final EditText etWeight = view.findViewById(R.id.etWeight);
         final Spinner spinnerFeeling = view.findViewById(R.id.spinnerFeeling);
 
-        String[] feelings = {"Р В РЎвЂєР РЋРІР‚С™Р В Р’В»Р В РЎвЂР РЋРІР‚РЋР В Р вЂ¦Р В РЎвЂў РЎР‚РЎСџРІР‚в„ўР вЂћ", "Р В РўС’Р В РЎвЂўР РЋР вЂљР В РЎвЂўР РЋРІвЂљВ¬Р В РЎвЂў РЎР‚РЎСџРІР‚ВР РЉ", "Р В Р в‚¬Р РЋР С“Р РЋРІР‚С™Р В Р’В°Р В Р’В» РЎР‚РЎСџР’ВРІР‚Сљ", "Р В РЎСџР В Р’В»Р В РЎвЂўР РЋРІР‚В¦Р В РЎвЂў РЎР‚РЎСџР’ВРЎвЂє"};
+        String[] feelings = {"Отлично", "Хорошо", "Устал", "Плохо"};
         ArrayAdapter<String> feelingAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, feelings);
         feelingAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
         spinnerFeeling.setAdapter(feelingAdapter);
 
-        builder.setTitle("РЎР‚РЎСџР РЏРІР‚в„–Р С—РЎвЂР РЏ Р В РЎвЂєР РЋРІР‚С™Р В РЎВР В Р’ВµР РЋРІР‚С™Р В РЎвЂР РЋРІР‚С™Р РЋР Р‰ Р В Р вЂ Р РЋРІР‚в„–Р В РЎвЂ”Р В РЎвЂўР В Р’В»Р В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р В РЎвЂР В Р’Вµ Р РЋРІР‚С™Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР вЂљР В РЎвЂўР В Р вЂ Р В РЎвЂќР В РЎвЂ")
+        builder.setTitle("Отметить выполнение тренировки")
                 .setView(view)
-                .setPositiveButton("Р В Р Р‹Р В РЎвЂўР РЋРІР‚В¦Р РЋР вЂљР В Р’В°Р В Р вЂ¦Р В РЎвЂР РЋРІР‚С™Р РЋР Р‰", (dialog, which) -> {
+                .setPositiveButton("Сохранить", (dialog, which) -> {
                     try {
                         String exerciseName = etExerciseName.getText().toString();
                         int sets = Integer.parseInt(etSets.getText().toString());
@@ -470,30 +462,25 @@ public class ClientActivity extends AppCompatActivity {
                         String feeling = feelings[spinnerFeeling.getSelectedItemPosition()];
 
                         boolean success = dbHelper.saveWorkoutResult(bookingId, exerciseName, sets, reps, weight, feeling);
-                        Toast.makeText(this, success ? "Р Р†РЎС™РІР‚Сљ Р В Р’В Р В Р’ВµР В Р’В·Р РЋРЎвЂњР В Р’В»Р РЋР Р‰Р РЋРІР‚С™Р В Р’В°Р РЋРІР‚С™Р РЋРІР‚в„– Р РЋР С“Р В РЎвЂўР РЋРІР‚В¦Р РЋР вЂљР В Р’В°Р В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р РЋРІР‚в„–!" : "Р Р†РЎСљР Р‰ Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р РЋР С“Р В РЎвЂўР РЋРІР‚В¦Р РЋР вЂљР В Р’В°Р В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР РЏ", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, success ? "Результаты сохранены" : "Ошибка сохранения", Toast.LENGTH_SHORT).show();
                         if (success) loadMyBookings();
                     } catch (Exception e) {
-                        Toast.makeText(this, "Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В°: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 })
-                .setNegativeButton("Р В РЎвЂєР РЋРІР‚С™Р В РЎВР В Р’ВµР В Р вЂ¦Р В Р’В°", null)
+                .setNegativeButton("Отмена", null)
                 .show();
     }
 
-    // ============ Р В РЎС™Р В РІР‚СћР В РЎС›Р В РЎвЂєР В РІР‚СњР В Р’В« Р В РІР‚СњР В РІР‚С”Р В Р вЂЎ Р В РЎвЂ™Р В РІР‚ВР В РЎвЂєР В РЎСљР В РІР‚СћР В РЎС™Р В РІР‚СћР В РЎСљР В РЎС›Р В РЎвЂєР В РІР‚в„ў ============
+    // ============ МЕТОДЫ ДЛЯ АБОНЕМЕНТОВ ============
 
     private void showMembershipSection() {
         dataList.clear();
         itemIds.clear();
 
         try {
-            // Р В РІР‚вЂќР В Р’В°Р В РЎвЂ“Р В РЎвЂўР В Р’В»Р В РЎвЂўР В Р вЂ Р В РЎвЂўР В РЎвЂќ
-            dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
-            dataList.add("           РЎР‚РЎСџР вЂ№Р’В« Р В РЎС™Р В РЎвЂєР В Р’В Р В РЎвЂ™Р В РІР‚ВР В РЎвЂєР В РЎСљР В РІР‚СћР В РЎС™Р В РІР‚СћР В РЎСљР В РЎС›Р В Р’В«");
-            dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
-            dataList.add("");
+            dataList.add("Мои абонементы");
 
-            // Р В РЎСџР В РЎвЂўР В РЎвЂќР В Р’В°Р В Р’В·Р РЋРІР‚в„–Р В Р вЂ Р В Р’В°Р В Р’ВµР В РЎВ Р В Р’В°Р В РЎвЂќР РЋРІР‚С™Р В РЎвЂР В Р вЂ Р В Р вЂ¦Р РЋРІР‚в„–Р В РІвЂћвЂ“ Р В Р’В°Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™
             Cursor activeMembership = dbHelper.getClientActiveMembership(clientId);
             if (activeMembership != null && activeMembership.moveToFirst()) {
                 String name = activeMembership.getString(activeMembership.getColumnIndexOrThrow(DatabaseHelper.COL_MT_NAME));
@@ -501,28 +488,16 @@ public class ClientActivity extends AppCompatActivity {
                 int price = activeMembership.getInt(activeMembership.getColumnIndexOrThrow(DatabaseHelper.COL_MT_PRICE));
                 String purchaseDate = activeMembership.getString(activeMembership.getColumnIndexOrThrow(DatabaseHelper.COL_MEM_PURCHASE_DATE));
 
-                dataList.add("Р Р†РЎС™РІР‚В¦ Р В РЎвЂ™Р В РЎв„ўР В РЎС›Р В Р’ВР В РІР‚в„ўР В РЎСљР В Р’В«Р В РІвЂћСћ Р В РЎвЂ™Р В РІР‚ВР В РЎвЂєР В РЎСљР В РІР‚СћР В РЎС™Р В РІР‚СћР В РЎСљР В РЎС›");
-                dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
-                dataList.add("РЎР‚РЎСџР РЏР’В·Р С—РЎвЂР РЏ " + name);
-                dataList.add("РЎР‚РЎСџРІР‚в„ўР’В° " + price + " Р Р†РІР‚С™Р вЂ¦");
-                dataList.add("РЎР‚РЎСџРІР‚СљРІР‚В¦ Р В РЎСџР РЋР вЂљР В РЎвЂР В РЎвЂўР В Р’В±Р РЋР вЂљР В Р’ВµР РЋРІР‚С™Р В Р’ВµР В Р вЂ¦: " + purchaseDate);
-                dataList.add("РЎР‚РЎСџРІР‚СљРІР‚В¦ Р В РІР‚СњР В Р’ВµР В РІвЂћвЂ“Р РЋР С“Р РЋРІР‚С™Р В Р вЂ Р РЋРЎвЂњР В Р’ВµР РЋРІР‚С™ Р В РўвЂР В РЎвЂў: " + endDate);
-                dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
-                dataList.add("");
+                dataList.add("Активный абонемент\nНазвание: " + name + "\nСтоимость: " + price + " ₽\nПриобретен: " + DateFormatUtils.formatRussianDate(purchaseDate) + "\nДействует до: " + DateFormatUtils.formatRussianDate(endDate));
                 activeMembership.close();
             } else {
-                dataList.add("Р Р†РЎв„ўР’В Р С—РЎвЂР РЏ Р В РЎСљР В РІР‚СћР В РЎС› Р В РЎвЂ™Р В РЎв„ўР В РЎС›Р В Р’ВР В РІР‚в„ўР В РЎСљР В РЎвЂєР В РІР‚СљР В РЎвЂє Р В РЎвЂ™Р В РІР‚ВР В РЎвЂєР В РЎСљР В РІР‚СћР В РЎС™Р В РІР‚СћР В РЎСљР В РЎС›Р В РЎвЂ™");
-                dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
-                dataList.add("Р В Р в‚¬ Р В Р вЂ Р В Р’В°Р РЋР С“ Р В Р вЂ¦Р В Р’ВµР РЋРІР‚С™ Р В Р’В°Р В РЎвЂќР РЋРІР‚С™Р В РЎвЂР В Р вЂ Р В Р вЂ¦Р В РЎвЂўР В РЎвЂ“Р В РЎвЂў Р В Р’В°Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™Р В Р’В°");
-                dataList.add("Р В РЎСџР РЋР вЂљР В РЎвЂР В РЎвЂўР В Р’В±Р РЋР вЂљР В Р’ВµР РЋРІР‚С™Р В РЎвЂР РЋРІР‚С™Р В Р’Вµ Р В Р’В°Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™ Р В РўвЂР В Р’В»Р РЋР РЏ Р В РЎвЂ”Р В РЎвЂўР РЋР С“Р В Р’ВµР РЋРІР‚В°Р В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР РЏ");
-                dataList.add("Р РЋРІР‚С™Р РЋР вЂљР В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР вЂљР В РЎвЂўР В Р вЂ Р В РЎвЂўР В РЎвЂќ Р В Р вЂ  Р В Р вЂ¦Р В Р’В°Р РЋРІвЂљВ¬Р В Р’ВµР В РЎВ Р В РЎвЂќР В Р’В»Р РЋРЎвЂњР В Р’В±Р В Р’Вµ!");
-                dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
-                dataList.add("");
+                dataList.add("Нет активного абонемента");
+                dataList.add("У вас нет активного абонемента");
+                dataList.add("Приобретите абонемент для посещения тренировок в нашем клубе");
             }
 
-            // Р В Р’ВР РЋР С“Р РЋРІР‚С™Р В РЎвЂўР РЋР вЂљР В РЎвЂР РЋР РЏ Р В Р’В°Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™Р В РЎвЂўР В Р вЂ 
-            dataList.add("РЎР‚РЎСџРІР‚СљРЎС™ Р В Р’ВР В Р Р‹Р В РЎС›Р В РЎвЂєР В Р’В Р В Р’ВР В Р вЂЎ Р В РЎвЂ™Р В РІР‚ВР В РЎвЂєР В РЎСљР В РІР‚СћР В РЎС™Р В РІР‚СћР В РЎСљР В РЎС›Р В РЎвЂєР В РІР‚в„ў");
-            dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
+            dataList.add("");
+            dataList.add("История абонементов");
 
             Cursor history = dbHelper.getClientMembershipHistory(clientId);
             if (history != null && history.moveToFirst()) {
@@ -535,35 +510,25 @@ public class ClientActivity extends AppCompatActivity {
                     int price = history.getInt(history.getColumnIndexOrThrow(DatabaseHelper.COL_MT_PRICE));
 
                     hasHistory = true;
-                    String statusIcon = status.equals("active") ? "Р Р†РЎС™РІР‚В¦" : "Р Р†РЎСљР Р‰";
-                    String statusText = status.equals("active") ? "Р В РЎвЂ™Р В РЎвЂќР РЋРІР‚С™Р В РЎвЂР В Р вЂ Р В Р’ВµР В Р вЂ¦" : "Р В РІР‚вЂќР В Р’В°Р В Р вЂ Р В Р’ВµР РЋР вЂљР РЋРІвЂљВ¬Р В Р’ВµР В Р вЂ¦";
-
-                    dataList.add(statusIcon + " " + name);
-                    dataList.add("РЎР‚РЎСџРІР‚в„ўР’В° " + price + " Р Р†РІР‚С™Р вЂ¦");
-                    dataList.add("РЎР‚РЎСџРІР‚СљРІР‚В¦ " + startDate + " Р Р†РІР‚В РІР‚в„ў " + endDate);
-                    dataList.add("РЎР‚РЎСџРІР‚СљР Р‰ Р В Р Р‹Р РЋРІР‚С™Р В Р’В°Р РЋРІР‚С™Р РЋРЎвЂњР РЋР С“: " + statusText);
-                    dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
+                    String statusText = "active".equals(status) ? "Активен" : "Завершен";
+                    dataList.add(name + "\nСтоимость: " + price + " ₽\nПериод: " + DateFormatUtils.formatRussianDate(startDate) + " - " + DateFormatUtils.formatRussianDate(endDate) + "\nСтатус: " + statusText);
+                    dataList.add("");
                 } while (history.moveToNext());
                 history.close();
 
                 if (!hasHistory) {
-                    dataList.add("Р В РЎСљР В Р’ВµР РЋРІР‚С™ Р В РЎвЂР РЋР С“Р РЋРІР‚С™Р В РЎвЂўР РЋР вЂљР В РЎвЂР В РЎвЂ Р В Р’В°Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™Р В РЎвЂўР В Р вЂ ");
-                    dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
+                    dataList.add("Нет истории абонементов");
                 }
             } else {
-                dataList.add("Р В РЎСљР В Р’ВµР РЋРІР‚С™ Р В РЎвЂР РЋР С“Р РЋРІР‚С™Р В РЎвЂўР РЋР вЂљР В РЎвЂР В РЎвЂ Р В Р’В°Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™Р В РЎвЂўР В Р вЂ ");
-                dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
+                dataList.add("Нет истории абонементов");
             }
-            dataList.add("");
 
-            // Р В РІР‚СњР В РЎвЂўР РЋР С“Р РЋРІР‚С™Р РЋРЎвЂњР В РЎвЂ”Р В Р вЂ¦Р РЋРІР‚в„–Р В Р’Вµ Р В Р’В°Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™Р РЋРІР‚в„– Р В РўвЂР В Р’В»Р РЋР РЏ Р В РЎвЂ”Р В РЎвЂўР В РЎвЂќР РЋРЎвЂњР В РЎвЂ”Р В РЎвЂќР В РЎвЂ
-            dataList.add("РЎР‚РЎСџРІР‚С”РІР‚в„ў Р В РІР‚СњР В РЎвЂєР В Р Р‹Р В РЎС›Р В Р в‚¬Р В РЎСџР В РЎСљР В Р’В«Р В РІР‚Сћ Р В РЎвЂ™Р В РІР‚ВР В РЎвЂєР В РЎСљР В РІР‚СћР В РЎС™Р В РІР‚СћР В РЎСљР В РЎС›Р В Р’В«");
-            dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
+            dataList.add("");
+            dataList.add("Доступные абонементы");
 
             Cursor types = dbHelper.getAllMembershipTypes();
-
             if (types != null && types.moveToFirst()) {
-                final ArrayList<Long> typeIds = new ArrayList<>(); // Р Р†РІР‚В РЎвЂ™ Р РЋР С“Р В РўвЂР В Р’ВµР В Р’В»Р В Р’В°Р В Р вЂ¦Р В РЎвЂў final
+                final ArrayList<Long> typeIds = new ArrayList<>();
                 boolean hasItems = false;
 
                 do {
@@ -576,57 +541,41 @@ public class ClientActivity extends AppCompatActivity {
 
                     if (isActive == 1) {
                         hasItems = true;
-                        typeIds.add(typeId); // Р Р†РІР‚В РЎвЂ™ Р В РўвЂР В РЎвЂўР В Р’В±Р В Р’В°Р В Р вЂ Р В Р’В»Р РЋР РЏР В Р’ВµР В РЎВ Р В Р вЂ  final Р РЋР С“Р В РЎвЂ”Р В РЎвЂР РЋР С“Р В РЎвЂўР В РЎвЂќ
-
-                        String status = isActive == 1 ? "Р Р†РЎС™РІР‚В¦ Р В РЎвЂ™Р В РЎвЂќР РЋРІР‚С™Р В РЎвЂР В Р вЂ Р В Р’ВµР В Р вЂ¦" : "Р Р†РЎСљР Р‰ Р В РЎСљР В Р’ВµР В Р’В°Р В РЎвЂќР РЋРІР‚С™Р В РЎвЂР В Р вЂ Р В Р’ВµР В Р вЂ¦";
-                        dataList.add("РЎР‚РЎСџР РЏР’В·Р С—РЎвЂР РЏ " + name + " (" + status + ")");
-                        dataList.add("РЎР‚РЎСџРІР‚СљРЎСљ " + description);
-                        dataList.add("РЎР‚РЎСџРІР‚СљРІР‚В¦ " + durationDays + " Р В РўвЂР В Р вЂ¦Р В Р’ВµР В РІвЂћвЂ“");
-                        dataList.add("РЎР‚РЎСџРІР‚в„ўР’В° " + price + " Р Р†РІР‚С™Р вЂ¦");
-                        dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
-                        dataList.add("РЎР‚РЎСџРІР‚ВРІР‚В° Р В РЎСљР В Р’В°Р В Р’В¶Р В РЎВР В РЎвЂР РЋРІР‚С™Р В Р’Вµ Р В РўвЂР В Р’В»Р РЋР РЏ Р В РЎвЂ”Р В РЎвЂўР В РЎвЂќР РЋРЎвЂњР В РЎвЂ”Р В РЎвЂќР В РЎвЂ [ID:" + typeId + "]");
-                        dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
+                        typeIds.add(typeId);
+                        dataList.add(name + "\nОписание: " + description + "\nСрок: " + durationDays + " дней\nЦена: " + price + " ₽\nНажмите для покупки [ID:" + typeId + "]");
                         dataList.add("");
                     }
                 } while (types.moveToNext());
                 types.close();
 
-                if (!hasItems) {
-                    dataList.add("Р В РЎСљР В Р’ВµР РЋРІР‚С™ Р В РўвЂР В РЎвЂўР РЋР С“Р РЋРІР‚С™Р РЋРЎвЂњР В РЎвЂ”Р В Р вЂ¦Р РЋРІР‚в„–Р РЋРІР‚В¦ Р В Р’В°Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™Р В РЎвЂўР В Р вЂ ");
-                    dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
-                } else {
-                    // Р В Р’ВР РЋР С“Р В РЎвЂ”Р В РЎвЂўР В Р’В»Р РЋР Р‰Р В Р’В·Р РЋРЎвЂњР В Р’ВµР В РЎВ final Р В РЎвЂ”Р В Р’ВµР РЋР вЂљР В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р В Р вЂ¦Р РЋРЎвЂњР РЋР вЂ№ Р В Р вЂ  Р В Р’В»Р РЋР РЏР В РЎВР В Р’В±Р В РўвЂР В Р’Вµ
+                if (hasItems) {
                     listView.setOnItemClickListener((parent, view, position, id) -> {
                         String selected = dataList.get(position);
-                        if (selected.contains("Р В РЎвЂ”Р В РЎвЂўР В РЎвЂќР РЋРЎвЂњР В РЎвЂ”Р В РЎвЂќР В РЎвЂ") || selected.contains("Р В РЎСљР В Р’В°Р В Р’В¶Р В РЎВР В РЎвЂР РЋРІР‚С™Р В Р’Вµ")) {
+                        if (selected.contains("Нажмите для покупки")) {
                             long extractedId = extractMembershipIdFromText(selected);
-                            if (extractedId != -1 && typeIds.contains(extractedId)) { // Р Р†РІР‚В РЎвЂ™ Р В РЎвЂР РЋР С“Р В РЎвЂ”Р В РЎвЂўР В Р’В»Р РЋР Р‰Р В Р’В·Р РЋРЎвЂњР В Р’ВµР В РЎВ typeIds
+                            if (extractedId != -1 && typeIds.contains(extractedId)) {
                                 showPurchaseMembershipDialog(extractedId);
                             }
                         }
                     });
+                } else {
+                    dataList.add("Нет доступных абонементов");
                 }
             } else {
-                dataList.add("Р В РЎСљР В Р’ВµР РЋРІР‚С™ Р В РўвЂР В РЎвЂўР РЋР С“Р РЋРІР‚С™Р РЋРЎвЂњР В РЎвЂ”Р В Р вЂ¦Р РЋРІР‚в„–Р РЋРІР‚В¦ Р В Р’В°Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™Р В РЎвЂўР В Р вЂ ");
-                dataList.add("Р В РЎвЂєР В Р’В±Р РЋР вЂљР В Р’В°Р РЋРІР‚С™Р В РЎвЂР РЋРІР‚С™Р В Р’ВµР РЋР С“Р РЋР Р‰ Р В РЎвЂќ Р В Р’В°Р В РўвЂР В РЎВР В РЎвЂР В Р вЂ¦Р В РЎвЂР РЋР С“Р РЋРІР‚С™Р РЋР вЂљР В Р’В°Р РЋРІР‚С™Р В РЎвЂўР РЋР вЂљР РЋРЎвЂњ Р В РўвЂР В Р’В»Р РЋР РЏ Р В РўвЂР В РЎвЂўР В Р’В±Р В Р’В°Р В Р вЂ Р В Р’В»Р В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР РЏ");
-                dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
-                if (types != null) types.close();
+                dataList.add("Нет доступных абонементов");
+                dataList.add("Обратитесь к администратору для добавления");
             }
 
             adapter.notifyDataSetChanged();
-
         } catch (Exception e) {
             e.printStackTrace();
             dataList.clear();
-            dataList.add("Р Р†РЎСљР Р‰ Р В РЎвЂєР В Р РѓР В Р’ВР В РІР‚ВР В РЎв„ўР В РЎвЂ™ Р В РІР‚вЂќР В РЎвЂ™Р В РІР‚СљР В Р’В Р В Р в‚¬Р В РІР‚вЂќР В РЎв„ўР В Р’В");
-            dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
+            dataList.add("Ошибка загрузки");
             dataList.add(e.getMessage());
-            dataList.add("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“");
             adapter.notifyDataSetChanged();
-            Toast.makeText(this, "Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В°: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
-
 
     private void showPurchaseMembershipDialog(final long typeId) {
         Cursor types = dbHelper.getAllMembershipTypes();
@@ -648,35 +597,29 @@ public class ClientActivity extends AppCompatActivity {
             types.close();
         }
 
-        // Р В Р Р‹Р В РЎвЂўР В Р’В·Р В РўвЂР В Р’В°Р В Р’ВµР В РЎВ final Р В РЎвЂ”Р В Р’ВµР РЋР вЂљР В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р В Р вЂ¦Р РЋРІР‚в„–Р В Р’Вµ Р В РўвЂР В Р’В»Р РЋР РЏ Р В РЎвЂР РЋР С“Р В РЎвЂ”Р В РЎвЂўР В Р’В»Р РЋР Р‰Р В Р’В·Р В РЎвЂўР В Р вЂ Р В Р’В°Р В Р вЂ¦Р В РЎвЂР РЋР РЏ Р В Р вЂ  Р В Р’В»Р РЋР РЏР В РЎВР В Р’В±Р В РўвЂР В Р’Вµ
         final String finalName = name;
         final String finalDescription = description;
         final int finalDurationDays = durationDays;
         final int finalPrice = price;
 
         AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
-        builder.setTitle("РЎР‚РЎСџРІР‚С”РІР‚в„ў Р В РЎСџР В РЎвЂўР В РЎвЂќР РЋРЎвЂњР В РЎвЂ”Р В РЎвЂќР В Р’В° Р В Р’В°Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™Р В Р’В°")
-                .setMessage("Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“\n" +
-                        "РЎР‚РЎСџР РЏР’В·Р С—РЎвЂР РЏ " + finalName + "\n" +
-                        "Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“\n" +
-                        "РЎР‚РЎСџРІР‚СљРЎСљ " + finalDescription + "\n" +
-                        "РЎР‚РЎСџРІР‚СљРІР‚В¦ " + finalDurationDays + " Р В РўвЂР В Р вЂ¦Р В Р’ВµР В РІвЂћвЂ“\n" +
-                        "РЎР‚РЎСџРІР‚в„ўР’В° " + finalPrice + " Р Р†РІР‚С™Р вЂ¦\n" +
-                        "Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“\n" +
-                        "Р В Р Р‹Р РЋРІР‚С™Р В Р’В°Р РЋР вЂљР РЋРІР‚в„–Р В РІвЂћвЂ“ Р В Р’В°Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™ Р В Р’В±Р РЋРЎвЂњР В РўвЂР В Р’ВµР РЋРІР‚С™ Р В Р’В°Р В Р вЂ Р РЋРІР‚С™Р В РЎвЂўР В РЎВР В Р’В°Р РЋРІР‚С™Р В РЎвЂР РЋРІР‚РЋР В Р’ВµР РЋР С“Р В РЎвЂќР В РЎвЂ\n" +
-                        "Р В РўвЂР В Р’ВµР В Р’В°Р В РЎвЂќР РЋРІР‚С™Р В РЎвЂР В Р вЂ Р В РЎвЂР РЋР вЂљР В РЎвЂўР В Р вЂ Р В Р’В°Р В Р вЂ¦\n" +
-                        "Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“Р Р†РІР‚СњР С“")
-                .setPositiveButton("Р Р†РЎС™РІР‚В¦ Р В РЎв„ўР РЋРЎвЂњР В РЎвЂ”Р В РЎвЂР РЋРІР‚С™Р РЋР Р‰", (dialog, which) -> {
+        builder.setTitle("Покупка абонемента")
+                .setMessage("Название: " + finalName + "\n" +
+                        "Описание: " + finalDescription + "\n" +
+                        "Срок: " + finalDurationDays + " дней\n" +
+                        "Стоимость: " + finalPrice + " ₽\n" +
+                        "Старый абонемент будет автоматически деактивирован")
+                .setPositiveButton("Купить", (dialog, which) -> {
                     boolean success = dbHelper.purchaseMembership(clientId, typeId);
                     if (success) {
-                        Toast.makeText(this, "Р Р†РЎС™РІР‚Сљ Р В РЎвЂ™Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™ \"" + finalName + "\" Р РЋРЎвЂњР РЋР С“Р В РЎвЂ”Р В Р’ВµР РЋРІвЂљВ¬Р В Р вЂ¦Р В РЎвЂў Р В РЎвЂ”Р РЋР вЂљР В РЎвЂР В РЎвЂўР В Р’В±Р РЋР вЂљР В Р’ВµР РЋРІР‚С™Р В Р’ВµР В Р вЂ¦!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Абонемент \"" + finalName + "\" успешно приобретен", Toast.LENGTH_LONG).show();
                         openMembershipsScreen();
                         loadMembershipStatus();
                     } else {
-                        Toast.makeText(this, "Р Р†РЎСљР Р‰ Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р В РЎвЂ”Р РЋР вЂљР В РЎвЂ Р В РЎвЂ”Р В РЎвЂўР В РЎвЂќР РЋРЎвЂњР В РЎвЂ”Р В РЎвЂќР В Р’Вµ Р В Р’В°Р В Р’В±Р В РЎвЂўР В Р вЂ¦Р В Р’ВµР В РЎВР В Р’ВµР В Р вЂ¦Р РЋРІР‚С™Р В Р’В°", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Ошибка при покупке абонемента", Toast.LENGTH_SHORT).show();
                     }
                 })
-                .setNegativeButton("Р В РЎвЂєР РЋРІР‚С™Р В РЎВР В Р’ВµР В Р вЂ¦Р В Р’В°", null)
+                .setNegativeButton("Отмена", null)
                 .show();
     }
 
@@ -689,22 +632,18 @@ public class ClientActivity extends AppCompatActivity {
             return -1;
         }
     }
-
-
-
     private void logout() {
         AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
-        builder.setTitle("Р В РІР‚в„ўР РЋРІР‚в„–Р РЋРІР‚В¦Р В РЎвЂўР В РўвЂ")
-                .setMessage("Р В РІР‚в„ўР РЋРІР‚в„– Р РЋРЎвЂњР В Р вЂ Р В Р’ВµР РЋР вЂљР В Р’ВµР В Р вЂ¦Р РЋРІР‚в„–, Р РЋРІР‚РЋР РЋРІР‚С™Р В РЎвЂў Р РЋРІР‚В¦Р В РЎвЂўР РЋРІР‚С™Р В РЎвЂР РЋРІР‚С™Р В Р’Вµ Р В Р вЂ Р РЋРІР‚в„–Р В РІвЂћвЂ“Р РЋРІР‚С™Р В РЎвЂ?")
-                .setPositiveButton("Р В РІР‚СњР В Р’В°", (dialog, which) -> {
+        builder.setTitle("Выход")
+                .setMessage("Вы уверены, что хотите выйти?")
+                .setPositiveButton("Да", (dialog, which) -> {
                     SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
                     prefs.edit().clear().apply();
                     startActivity(new Intent(this, LoginActivity.class));
                     finish();
                 })
-                .setNegativeButton("Р В РЎвЂєР РЋРІР‚С™Р В РЎВР В Р’ВµР В Р вЂ¦Р В Р’В°", null)
+                .setNegativeButton("Отмена", null)
                 .show();
     }
 }
-
 

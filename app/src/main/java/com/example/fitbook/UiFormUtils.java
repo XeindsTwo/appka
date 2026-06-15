@@ -85,9 +85,12 @@ public final class UiFormUtils {
 
     @NonNull
     private static List<String> buildQuarterHourTimes() {
-        ArrayList<String> times = new ArrayList<>(96);
-        for (int hour = 0; hour < 24; hour++) {
+        ArrayList<String> times = new ArrayList<>(57);
+        for (int hour = 8; hour <= 22; hour++) {
             for (int minute = 0; minute < 60; minute += 15) {
+                if (hour == 22 && minute > 0) {
+                    break;
+                }
                 times.add(String.format(Locale.getDefault(), "%02d:%02d", hour, minute));
             }
         }

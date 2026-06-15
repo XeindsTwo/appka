@@ -43,6 +43,7 @@
             android:layout_marginTop="8dp"
             android:fontFamily="@font/inter"
             android:includeFontPadding="false"
+            android:lineSpacingExtra="3dp"
             android:textColor="@color/fitbook_text_secondary"
             android:textSize="13sp" />
 
@@ -90,8 +91,8 @@
                 android:fontFamily="@font/inter"
                 android:text="Удалить"
                 android:textAllCaps="false"
-                android:textSize="13sp"
                 android:textColor="@color/colorDanger"
+                android:textSize="13sp"
                 app:cornerRadius="16dp"
                 app:icon="@drawable/ic_trainer_delete"
                 app:iconGravity="textStart"

@@ -51,7 +51,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_MEM_PURCHASE_DATE = "mem_purchase_date";
     public static final String COL_MEM_TYPE_NAME = "mem_type_name";
 
-    // ==================== РЎРўР РЈРљРўРЈР Рђ Р—РђРЇР’РћРљ РџРћ РђР‘РћРќР•РњР•РќРўРђРњ ====================
+    // ==================== СТРУКТУРА ЗАЯВОК ПО АБОНЕМЕНТАМ ====================
     public static final String TABLE_MEMBERSHIP_APPLICATIONS = "membership_applications";
     public static final String COL_MA_ID = "ma_id";
     public static final String COL_MA_CLIENT_ID = "ma_client_id";
@@ -1148,6 +1148,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_PLAN_ID + " DESC LIMIT 1", new String[]{String.valueOf(clientId)});
     }
 
+    public long getLatestWorkoutPlanIdForClient(long clientId) {
+        Cursor cursor = getClientWorkoutPlan(clientId);
+        if (cursor != null) {
+            try {
+                if (cursor.moveToFirst()) {
+                    return cursor.getLong(cursor.getColumnIndexOrThrow(COL_PLAN_ID));
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+        return -1;
+    }
+
     public Cursor getPlanExercises(long planId) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(TABLE_PLAN_EXERCISES, null, COL_PE_PLAN_ID + "=?",
@@ -1203,6 +1217,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return false;
     }
 
+    public boolean markBookingCompleted(long bookingId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues update = new ContentValues();
+        update.put(COL_BOOKING_STATUS, "completed");
+        return db.update(TABLE_BOOKINGS, update, COL_BOOKING_ID + "=?", new String[]{String.valueOf(bookingId)}) > 0;
+    }
+
     public int getCompletedWorkoutsCount(long clientId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_BOOKINGS +
@@ -1229,6 +1250,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COL_ANTHRO_BICEPS, biceps);
         values.put(COL_ANTHRO_CHEST, chest);
         values.put(COL_ANTHRO_WAIST, waist);
+        Cursor cursor = db.query(TABLE_ANTHROPOMETRY, new String[]{COL_ANTHRO_ID},
+                COL_ANTHRO_CLIENT_ID + "=? AND " + COL_ANTHRO_DATE + "=?",
+                new String[]{String.valueOf(clientId), date}, null, null, null);
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+                long anthroId = cursor.getLong(cursor.getColumnIndexOrThrow(COL_ANTHRO_ID));
+                return db.update(TABLE_ANTHROPOMETRY, values, COL_ANTHRO_ID + "=?",
+                        new String[]{String.valueOf(anthroId)}) > 0;
+            }
+        } finally {
+            if (cursor != null) cursor.close();
+        }
         return db.insert(TABLE_ANTHROPOMETRY, null, values) != -1;
     }
 
@@ -1262,6 +1295,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         // Убедитесь, что выбираются только активные абонементы
         return db.query(TABLE_MEMBERSHIP_TYPES, null, COL_MT_IS_ACTIVE + "=1", null, null, null, null);
+    }
+
+    public Cursor getAllMembershipTypesAdmin() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.query(TABLE_MEMBERSHIP_TYPES, null, null, null, null, null, null);
     }
     // Получение истории всех абонементов клиента
     public Cursor getClientMembershipHistory(long clientId) {

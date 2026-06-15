@@ -46,7 +46,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
                 android:gravity="top"
-                android:hint="Введите заметки/примечания"
+                android:hint="Введите заметки или рекомендации"
                 android:inputType="textMultiLine"
                 android:minLines="4"
                 android:padding="16dp"

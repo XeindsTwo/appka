@@ -38,6 +38,7 @@ public class MembershipsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!AuthGuard.requireRole(this, "client")) return;
         setContentView(R.layout.activity_memberships);
 
         dbHelper = new DatabaseHelper(this);
@@ -65,6 +66,7 @@ public class MembershipsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!AuthGuard.requireRole(this, "client")) return;
         renderActiveMembership();
         renderHistorySummary();
     }
@@ -162,7 +164,7 @@ public class MembershipsActivity extends AppCompatActivity {
             String paymentMethod = getCursorString(latestApplication, DatabaseHelper.COL_MA_PAYMENT_METHOD, "—");
             String goal = getCursorString(latestApplication, DatabaseHelper.COL_MA_GOAL, "—");
             String timeSlot = getCursorString(latestApplication, DatabaseHelper.COL_MA_TIME_SLOT, "—");
-            String createdAt = getCursorString(latestApplication, DatabaseHelper.COL_MA_CREATED_AT, "—");
+            String createdAt = DateFormatUtils.formatRussianDate(getCursorString(latestApplication, DatabaseHelper.COL_MA_CREATED_AT, "—"));
             tvHistorySummary.setText(planName + " • " + paymentMethod + " • " + goal + " • " + timeSlot + "\n" + createdAt);
             latestApplication.close();
         } else {
@@ -195,6 +197,9 @@ public class MembershipsActivity extends AppCompatActivity {
         actPaymentMethod.setAdapter(paymentAdapter);
         actGoal.setAdapter(goalAdapter);
         actTimeSlot.setAdapter(timeAdapter);
+        actPaymentMethod.setOnClickListener(v -> actPaymentMethod.showDropDown());
+        actGoal.setOnClickListener(v -> actGoal.showDropDown());
+        actTimeSlot.setOnClickListener(v -> actTimeSlot.showDropDown());
         actPaymentMethod.setText(paymentAdapter.getItem(0), false);
         actGoal.setText(goalAdapter.getItem(0), false);
         actTimeSlot.setText(timeAdapter.getItem(0), false);

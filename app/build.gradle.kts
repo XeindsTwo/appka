@@ -1,14 +1,10 @@
-plugins {
-    alias(libs.plugins.android.application)
-}
+import com.android.build.api.dsl.ApplicationExtension
 
-android {
+apply(plugin = "com.android.application")
+
+extensions.configure<ApplicationExtension>("android") {
     namespace = "com.example.fitbook"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.fitbook"
@@ -21,7 +17,7 @@ android {
     }
 
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -29,6 +25,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -36,11 +33,11 @@ android {
 }
 
 dependencies {
-    implementation(libs.activity.ktx)
-    implementation(libs.appcompat)
-    implementation(libs.constraintlayout)
-    implementation(libs.material)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.espresso.core)
-    androidTestImplementation(libs.ext.junit)
+    add("implementation", "androidx.activity:activity-ktx:1.13.0")
+    add("implementation", "androidx.appcompat:appcompat:1.7.1")
+    add("implementation", "androidx.constraintlayout:constraintlayout:2.2.1")
+    add("implementation", "com.google.android.material:material:1.13.0")
+    add("testImplementation", "junit:junit:4.13.2")
+    add("androidTestImplementation", "androidx.test.espresso:espresso-core:3.7.0")
+    add("androidTestImplementation", "androidx.test.ext:junit:1.3.0")
 }

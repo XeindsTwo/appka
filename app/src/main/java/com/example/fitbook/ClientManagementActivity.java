@@ -39,6 +39,7 @@ public class ClientManagementActivity extends AppCompatActivity {
     private Spinner spinnerTrainer;
     private Spinner spinnerMembership;
     private ListView listView;
+    private TextView tvEmptyClients;
     private TextView tvTotalClients;
     private TextView tvClientsWithTrainer;
     private TextView tvActiveMembershipClients;
@@ -57,6 +58,7 @@ public class ClientManagementActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!AuthGuard.requireRole(this, "admin")) return;
         setContentView(R.layout.activity_client_management);
 
         dbHelper = new DatabaseHelper(this);
@@ -64,6 +66,7 @@ public class ClientManagementActivity extends AppCompatActivity {
         spinnerTrainer = findViewById(R.id.spinnerTrainer);
         spinnerMembership = findViewById(R.id.spinnerMembership);
         listView = findViewById(R.id.listView);
+        tvEmptyClients = findViewById(R.id.tvEmptyClients);
         tvTotalClients = findViewById(R.id.tvTotalClients);
         tvClientsWithTrainer = findViewById(R.id.tvClientsWithTrainer);
         tvActiveMembershipClients = findViewById(R.id.tvActiveMembershipClients);
@@ -95,6 +98,7 @@ public class ClientManagementActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!AuthGuard.requireRole(this, "admin")) return;
         loadItems();
     }
 
@@ -183,6 +187,9 @@ public class ClientManagementActivity extends AppCompatActivity {
         }
 
         adapter.notifyDataSetChanged();
+        boolean isEmpty = visibleItems.isEmpty();
+        listView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        tvEmptyClients.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
     }
 
     private void showClientDetails(ClientItem item) {
@@ -204,6 +211,7 @@ public class ClientManagementActivity extends AppCompatActivity {
         AlertDialog dialog = new MaterialAlertDialogBuilder(this).setView(view).create();
         view.findViewById(R.id.btnClose).setOnClickListener(v -> dialog.dismiss());
         dialog.show();
+        expandDialog(dialog, 0.92f, 0.82f);
     }
 
     private void showEditClientDialog(ClientItem item) {
@@ -213,14 +221,38 @@ public class ClientManagementActivity extends AppCompatActivity {
         TextInputEditText etFullName = view.findViewById(R.id.etFullName);
         TextInputEditText etPhone = view.findViewById(R.id.etPhone);
         TextInputEditText etEmail = view.findViewById(R.id.etEmail);
+        Spinner spinnerTrainer = view.findViewById(R.id.spinnerTrainer);
 
         etUsername.setText(item.username);
         etFullName.setText(item.fullName);
         etPhone.setText(item.phone);
         etEmail.setText(item.email);
 
+        ArrayList<String> trainerNames = new ArrayList<>();
+        ArrayList<Long> trainerIds = new ArrayList<>();
+        trainerNames.add("Не назначен");
+        trainerIds.add(-1L);
+        Cursor trainers = dbHelper.getAllTrainers();
+        if (trainers != null) {
+            while (trainers.moveToNext()) {
+                trainerNames.add(trainers.getString(trainers.getColumnIndexOrThrow(DatabaseHelper.COL_FULL_NAME)));
+                trainerIds.add(trainers.getLong(trainers.getColumnIndexOrThrow(DatabaseHelper.COL_USER_ID)));
+            }
+            trainers.close();
+        }
+        ArrayAdapter<String> trainerAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, trainerNames);
+        trainerAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
+        spinnerTrainer.setAdapter(trainerAdapter);
+        int selectedTrainerIndex = 0;
+        if (item.trainerName != null) {
+            int existingIndex = trainerNames.indexOf(item.trainerName);
+            if (existingIndex >= 0) {
+                selectedTrainerIndex = existingIndex;
+            }
+        }
+        spinnerTrainer.setSelection(selectedTrainerIndex);
+
         AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setTitle("Редактирование клиента")
                 .setView(view)
                 .setPositiveButton("Сохранить", null)
                 .setNegativeButton("Отмена", (d, w) -> d.dismiss())
@@ -237,6 +269,14 @@ public class ClientManagementActivity extends AppCompatActivity {
                 return;
             }
             boolean success = dbHelper.updateClient(item.id, username, password, fullName, phone, email);
+            if (success) {
+                int trainerIndex = spinnerTrainer.getSelectedItemPosition();
+                if (trainerIndex <= 0) {
+                    dbHelper.clearClientTrainer(item.id);
+                } else {
+                    dbHelper.assignTrainerToClient(item.id, trainerIds.get(trainerIndex), "");
+                }
+            }
             Toast.makeText(this, success ? "Клиент обновлён" : "Не удалось обновить клиента", Toast.LENGTH_SHORT).show();
             if (success) {
                 dialog.dismiss();
@@ -244,6 +284,7 @@ public class ClientManagementActivity extends AppCompatActivity {
             }
         }));
         dialog.show();
+        expandDialog(dialog, 0.95f, 0.88f);
     }
 
     private void showAssignTrainerDialog(ClientItem item) {
@@ -271,7 +312,7 @@ public class ClientManagementActivity extends AppCompatActivity {
         }
         spinner.setSelection(selectedIndex);
 
-        new MaterialAlertDialogBuilder(this)
+        AlertDialog assignDialog = new MaterialAlertDialogBuilder(this)
                 .setTitle("Назначить тренера")
                 .setView(spinner)
                 .setPositiveButton("Сохранить", (dialog, which) -> {
@@ -286,7 +327,9 @@ public class ClientManagementActivity extends AppCompatActivity {
                     loadItems();
                 })
                 .setNegativeButton("Отмена", null)
-                .show();
+                .create();
+        assignDialog.show();
+        expandDialog(assignDialog, 0.88f, 0.5f);
     }
 
     private void confirmDeleteClient(ClientItem item) {
@@ -311,7 +354,6 @@ public class ClientManagementActivity extends AppCompatActivity {
         TextInputEditText etEmail = view.findViewById(R.id.etEmail);
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setTitle("Регистрация клиента")
                 .setView(view)
                 .setPositiveButton("Создать", null)
                 .setNegativeButton("Отмена", (d, w) -> d.dismiss())
@@ -332,9 +374,10 @@ public class ClientManagementActivity extends AppCompatActivity {
             if (success) {
                 dialog.dismiss();
                 loadItems();
-            }
+                }
         }));
         dialog.show();
+        expandDialog(dialog, 0.95f, 0.82f);
     }
 
     private String textOf(TextView textView) {
@@ -353,6 +396,15 @@ public class ClientManagementActivity extends AppCompatActivity {
         if ("active".equals(status)) return "Активный";
         if ("expired".equals(status)) return "Истекший";
         return "Без абонемента";
+    }
+
+    private void expandDialog(AlertDialog dialog, float widthRatio, float heightRatio) {
+        if (dialog.getWindow() == null) {
+            return;
+        }
+        int width = (int) (getResources().getDisplayMetrics().widthPixels * widthRatio);
+        int height = (int) (getResources().getDisplayMetrics().heightPixels * heightRatio);
+        dialog.getWindow().setLayout(width, height);
     }
 
     private class ClientListAdapter extends BaseAdapter {
@@ -395,7 +447,7 @@ public class ClientManagementActivity extends AppCompatActivity {
         void bind(ClientItem item) {
             tvName.setText(item.fullName);
             tvUsername.setText("@" + safe(item.username));
-            tvMeta.setText("Тренер: " + safe(item.trainerName) + " • Абонемент: " + safe(item.membershipName) + " • " + statusLabel(item.membershipStatus));
+            tvMeta.setText("Тренер: " + safe(item.trainerName) + "\nАбонемент: " + safe(item.membershipName) + " | " + statusLabel(item.membershipStatus));
             root.setOnClickListener(v -> showClientDetails(item));
             btnEdit.setOnClickListener(v -> showEditClientDialog(item));
             btnDelete.setOnClickListener(v -> confirmDeleteClient(item));

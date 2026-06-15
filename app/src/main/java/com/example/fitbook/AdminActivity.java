@@ -1,4 +1,4 @@
-package com.example.fitbook;
+﻿package com.example.fitbook;
 
 
 import android.content.Intent;
@@ -65,12 +65,13 @@ public class AdminActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!AuthGuard.requireRole(this, "admin")) return;
         setContentView(R.layout.activity_admin);
 
         dbHelper = new DatabaseHelper(this);
         prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
 
-        String adminName = prefs.getString(DatabaseHelper.COL_FULL_NAME, "Р В РЎвЂ™Р В РўвЂР В РЎВР В РЎвЂР В Р вЂ¦Р В РЎвЂР РЋР С“Р РЋРІР‚С™Р РЋР вЂљР В Р’В°Р РЋРІР‚С™Р В РЎвЂўР РЋР вЂљ");
+        String adminName = prefs.getString(DatabaseHelper.COL_FULL_NAME, "Администратор");
 
         tvAdminName = findViewById(R.id.tvAdminName);
         tvSectionTitle = findViewById(R.id.tvSectionTitle);
@@ -91,7 +92,7 @@ public class AdminActivity extends AppCompatActivity {
         spinnerClientMembershipFilter = findViewById(R.id.spinnerClientMembershipFilter);
         spinnerClientSort = findViewById(R.id.spinnerClientSort);
 
-        // Р В Р’В Р РЋРІвЂћСћР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚СћР В Р’В Р РЋРІР‚вЂќР В Р’В Р РЋРІР‚СњР В Р’В Р РЋРІР‚В
+        // Кнопки
         findViewById(R.id.btnAddTrainer).setOnClickListener(v -> startActivity(new Intent(this, AddTrainerActivity.class)));
         findViewById(R.id.btnAddSchedule).setOnClickListener(v -> startActivity(new Intent(this, AddScheduleActivity.class)));
         findViewById(R.id.btnViewClients).setOnClickListener(v -> {
@@ -103,6 +104,7 @@ public class AdminActivity extends AppCompatActivity {
         findViewById(R.id.btnViewSchedule).setOnClickListener(v -> startActivity(new Intent(this, ScheduleManagementActivity.class)));
         findViewById(R.id.btnMembershipTypes).setOnClickListener(v -> startActivity(new Intent(this, MembershipManagementActivity.class)));
         findViewById(R.id.btnRegisterClient).setOnClickListener(v -> showRegisterClientDialog());
+        findViewById(R.id.btnOpenProfile).setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
         btnAddMembership.setOnClickListener(v -> showAddMembershipDialog());
         setupBottomNavigation();
 
@@ -117,6 +119,7 @@ public class AdminActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!AuthGuard.requireRole(this, "admin")) return;
         if ("trainers".equals(currentMode)) {
             btnAddMembership.setVisibility(View.GONE);
             loadTrainers();
@@ -327,6 +330,8 @@ public class AdminActivity extends AppCompatActivity {
         ArrayAdapter<String> specializationAdapter = new ArrayAdapter<>(this, R.layout.item_dropdown_dark, getResources().getStringArray(R.array.specialization_options));
         specializationAdapter.setDropDownViewResource(R.layout.item_dropdown_dark_dropdown);
         etSpecialization.setAdapter(specializationAdapter);
+        etSpecialization.setInputType(android.text.InputType.TYPE_NULL);
+        etSpecialization.setKeyListener(null);
 
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.dialog_add_trainer_title)
@@ -399,11 +404,16 @@ public class AdminActivity extends AppCompatActivity {
         btnSave.setOnClickListener(v -> {
             try {
                 int pos = spinnerTrainer.getSelectedItemPosition();
+                String selectedTime = etTime.getText() == null ? "" : etTime.getText().toString().trim();
+                if (!isTimeInWorkRange(selectedTime)) {
+                    Toast.makeText(this, "Выберите время с 08:00 до 22:00", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 boolean success = dbHelper.addSchedule(
                         trainerIds.get(pos),
                         etWorkoutType.getText() == null ? "" : etWorkoutType.getText().toString().trim(),
                         etDate.getText() == null ? "" : etDate.getText().toString().trim(),
-                        etTime.getText() == null ? "" : etTime.getText().toString().trim(),
+                        selectedTime,
                         Integer.parseInt(etDuration.getText() == null ? "0" : etDuration.getText().toString().trim()),
                         Integer.parseInt(etMaxClients.getText() == null ? "0" : etMaxClients.getText().toString().trim())
                 );
@@ -506,13 +516,13 @@ public class AdminActivity extends AppCompatActivity {
             int exp = trainers.getInt(trainers.getColumnIndexOrThrow(DatabaseHelper.COL_EXPERIENCE));
 
             itemIds.add(id);
-            dataList.add("Р РЋР вЂљР РЋРЎСџР Р†Р вЂљР’ВР В Р С“Р В Р вЂ Р В РІР‚С™Р В Р Р‰Р РЋР вЂљР РЋРЎСџР В Р РЏР вЂ™Р’В« " + name + "\nР РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р РЋРІР‚С” " + phone + "\nР РЋР вЂљР РЋРЎСџР В РІР‚в„–Р В РІР‚РЋ " + spec + "\nР РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р Р†Р вЂљР’В¦ Р В Р’В Р РЋРІР‚С”Р В Р’В Р РЋРІР‚вЂќР В Р Р‹Р Р†Р вЂљРІвЂћвЂ“Р В Р Р‹Р Р†Р вЂљРЎв„ў: " + exp + " Р В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р Р†Р вЂљРЎв„ў");
+            dataList.add("Тренер: " + name + "\nТелефон: " + phone + "\nСпециализация: " + spec + "\nОпыт: " + exp + " лет");
         }
         trainers.close();
         adapter.notifyDataSetChanged();
 
         if (dataList.isEmpty()) {
-            dataList.add("Р В Р’В Р РЋРЎС™Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р Р†Р вЂљРЎв„ў Р В Р’В Р вЂ™Р’В·Р В Р’В Р вЂ™Р’В°Р В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р РЋРІР‚вЂњР В Р’В Р РЋРІР‚ВР В Р Р‹Р В РЎвЂњР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚ВР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В¦Р В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРІвЂћвЂ“Р В Р Р‹Р Р†Р вЂљР’В¦ Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В ");
+            dataList.add("Нет зарегистрированных тренеров");
             adapter.notifyDataSetChanged();
         }
     }
@@ -532,13 +542,13 @@ public class AdminActivity extends AppCompatActivity {
             int max = schedule.getInt(schedule.getColumnIndexOrThrow(DatabaseHelper.COL_MAX_CLIENTS));
 
             itemIds.add(id);
-            dataList.add("Р РЋР вЂљР РЋРЎСџР В Р РЏР Р†Р вЂљРІвЂћвЂ“Р В РЎвЂ”Р РЋРІР‚ВР В Р РЏ " + type + "\nР РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р Р†Р вЂљР’В¦ " + date + " " + time + "\nР РЋР вЂљР РЋРЎСџР Р†Р вЂљР’ВР В Р С“Р В Р вЂ Р В РІР‚С™Р В Р Р‰Р РЋР вЂљР РЋРЎСџР В Р РЏР вЂ™Р’В« " + trainer + "\nР РЋР вЂљР РЋРЎСџР Р†Р вЂљР’ВР СћРЎвЂ™ Р В Р’В Р Р†Р вЂљРІР‚СњР В Р’В Р вЂ™Р’В°Р В Р’В Р РЋРІР‚вЂќР В Р’В Р РЋРІР‚ВР В Р Р‹Р В РЎвЂњР В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚Сћ: " + current + "/" + max);
+            dataList.add("Тренировка: " + type + "\nДата: " + date + " " + time + "\nТренер: " + trainer + "\nЗаписано: " + current + "/" + max);
         }
         schedule.close();
         adapter.notifyDataSetChanged();
 
         if (dataList.isEmpty()) {
-            dataList.add("Р В Р’В Р РЋРЎС™Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р Р†Р вЂљРЎв„ў Р В Р’В Р вЂ™Р’В·Р В Р’В Р вЂ™Р’В°Р В Р’В Р РЋРІР‚вЂќР В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В¦Р В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРІвЂћвЂ“Р В Р Р‹Р Р†Р вЂљР’В¦ Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚СћР В Р’В Р РЋРІР‚Сњ");
+            dataList.add("Нет запланированных тренировок");
             adapter.notifyDataSetChanged();
         }
     }
@@ -558,15 +568,15 @@ public class AdminActivity extends AppCompatActivity {
                 int isActive = types.getInt(types.getColumnIndexOrThrow(DatabaseHelper.COL_MT_IS_ACTIVE));
 
                 itemIds.add(id);
-                String status = isActive == 1 ? "Р В Р вЂ Р РЋРЎв„ўР Р†Р вЂљР’В¦ Р В Р’В Р РЋРІР‚в„ўР В Р’В Р РЋРІР‚СњР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚ВР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦" : "Р В Р вЂ Р РЋРЎС™Р В Р вЂ° Р В Р’В Р РЋРЎС™Р В Р’В Р вЂ™Р’ВµР В Р’В Р вЂ™Р’В°Р В Р’В Р РЋРІР‚СњР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚ВР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦";
-                dataList.add("Р РЋР вЂљР РЋРЎСџР В Р РЏР вЂ™Р’В·Р В РЎвЂ”Р РЋРІР‚ВР В Р РЏ " + name + " (" + status + ")" +
-                        "\nР РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р РЋРЎС™ " + description +
-                        "\nР РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р Р†Р вЂљР’В¦ " + days + " Р В Р’В Р СћРІР‚ВР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р Р†РІР‚С›РІР‚вЂњ" +
-                        "\nР РЋР вЂљР РЋРЎСџР Р†Р вЂљРІвЂћСћР вЂ™Р’В° " + price + " Р В Р вЂ Р Р†Р вЂљРЎв„ўР В РІР‚В¦");
+                String status = isActive == 1 ? "Активен" : "Неактивен";
+                dataList.add("Абонемент: " + name + " (" + status + ")" +
+                        "\nОписание: " + description +
+                        "\nСрок: " + days + " дней" +
+                        "\nЦена: " + price + " ₽");
             } while (types.moveToNext());
             types.close();
         } else {
-            dataList.add("Р В Р’В Р РЋРЎС™Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р Р†Р вЂљРЎв„ў Р В Р Р‹Р В РЎвЂњР В Р’В Р РЋРІР‚СћР В Р’В Р вЂ™Р’В·Р В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В¦Р В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРІвЂћвЂ“Р В Р Р‹Р Р†Р вЂљР’В¦ Р В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В ");
+            dataList.add("Нет созданных абонементов");
         }
         adapter.notifyDataSetChanged();
     }
@@ -910,11 +920,16 @@ public class AdminActivity extends AppCompatActivity {
         btnSave.setOnClickListener(v -> {
             try {
                 int pos = spinnerTrainer.getSelectedItemPosition();
+                String selectedTime = etTime.getText() == null ? "" : etTime.getText().toString().trim();
+                if (!isTimeInWorkRange(selectedTime)) {
+                    Toast.makeText(this, "Выберите время с 08:00 до 22:00", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 boolean success = dbHelper.updateSchedule(
                         scheduleId,
                         etWorkoutType.getText() == null ? "" : etWorkoutType.getText().toString().trim(),
                         etDate.getText() == null ? "" : etDate.getText().toString().trim(),
-                        etTime.getText() == null ? "" : etTime.getText().toString().trim(),
+                        selectedTime,
                         Integer.parseInt(etDuration.getText() == null ? "0" : etDuration.getText().toString().trim()),
                         Integer.parseInt(etMaxClients.getText() == null ? "0" : etMaxClients.getText().toString().trim())
                 );
@@ -965,9 +980,9 @@ public class AdminActivity extends AppCompatActivity {
         etPrice.setText(String.valueOf(price));
         cbIsActive.setChecked(isActive == 1);
 
-        builder.setTitle("Р В Р вЂ Р РЋРЎв„ўР В Р РЏР В РЎвЂ”Р РЋРІР‚ВР В Р РЏ Р В Р’В Р вЂ™Р’В Р В Р’В Р вЂ™Р’ВµР В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’В°Р В Р’В Р РЋРІР‚СњР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚ВР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’В°Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ° Р В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРЎв„ў")
+        builder.setTitle("Редактировать абонемент")
                 .setView(view)
-                .setPositiveButton("Р В Р’В Р В Р вЂ№Р В Р’В Р РЋРІР‚СћР В Р Р‹Р Р†Р вЂљР’В¦Р В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В Р вЂ°", (dialog, which) -> {
+                .setPositiveButton("Сохранить", (dialog, which) -> {
                     try {
                         boolean success = dbHelper.updateMembershipType(
                                 typeId,
@@ -977,13 +992,13 @@ public class AdminActivity extends AppCompatActivity {
                                 Integer.parseInt(etPrice.getText().toString()),
                                 cbIsActive.isChecked()
                         );
-                        Toast.makeText(this, success ? "Р В Р’В Р РЋРІР‚в„ўР В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљРЎв„ў Р В Р’В Р РЋРІР‚СћР В Р’В Р вЂ™Р’В±Р В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦" : "Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†РІР‚С™Р’В¬Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В°", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, success ? "Абонемент обновлен" : "Ошибка", Toast.LENGTH_SHORT).show();
                         loadMembershipTypes();
                     } catch (Exception e) {
-                        Toast.makeText(this, "Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†РІР‚С™Р’В¬Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В°: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 })
-                .setNegativeButton("Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’В°", null)
+                .setNegativeButton("Отмена", null)
                 .show();
     }
 
@@ -1042,7 +1057,17 @@ public class AdminActivity extends AppCompatActivity {
     }
 
 
-        private void logout() {
+    private boolean isTimeInWorkRange(String value) {
+        if (value == null || !value.matches("\\d{2}:\\d{2}")) {
+            return false;
+        }
+        int hour = Integer.parseInt(value.substring(0, 2));
+        int minute = Integer.parseInt(value.substring(3, 5));
+        int totalMinutes = hour * 60 + minute;
+        return totalMinutes >= 8 * 60 && totalMinutes <= 22 * 60;
+    }
+
+    private void logout() {
         AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
         builder.setTitle(R.string.dialog_logout_title)
                 .setMessage(R.string.dialog_logout_message)
