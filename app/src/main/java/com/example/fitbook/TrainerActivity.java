@@ -377,6 +377,7 @@ public class TrainerActivity extends AppCompatActivity {
                 holder.meta = view.findViewById(R.id.tvItemMeta);
                 holder.detail = view.findViewById(R.id.tvItemDetail);
                 holder.action = view.findViewById(R.id.tvItemAction);
+                holder.hint = view.findViewById(R.id.tvItemHint);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
@@ -386,12 +387,25 @@ public class TrainerActivity extends AppCompatActivity {
             holder.title.setText(item.title);
             holder.meta.setText(item.meta);
             holder.detail.setText(item.detail);
+            holder.hint.setText(item.action == null || item.action.isEmpty()
+                    ? "Карточка открывается для просмотра и редактирования"
+                    : "Нажми ниже, чтобы перейти к следующему шагу");
 
             if (item.action == null || item.action.isEmpty()) {
                 holder.action.setVisibility(View.GONE);
             } else {
                 holder.action.setVisibility(View.VISIBLE);
                 holder.action.setText(item.action);
+            }
+
+            if (item.detail != null && item.detail.contains("РџР»Р°РЅ")) {
+                holder.hint.setText("Нажми на карточку клиента, чтобы назначить или дополнить план");
+            } else if (item.detail != null && item.detail.contains("Р—Р°РїРёСЃР°РЅРѕ")) {
+                holder.hint.setText("Карточка показывает загрузку и время занятия");
+            } else if (item.detail != null && item.detail.contains("Email")) {
+                holder.hint.setText("Тут собраны контакты клиента для быстрой связи");
+            } else {
+                holder.hint.setText("Карточка открывается для просмотра и управления");
             }
 
             return view;
@@ -403,5 +417,6 @@ public class TrainerActivity extends AppCompatActivity {
         TextView meta;
         TextView detail;
         TextView action;
+        TextView hint;
     }
 }

@@ -47,6 +47,7 @@
         android:layout_marginEnd="2dp"
         app:boxBackgroundColor="@color/fitbook_background"
         app:boxBackgroundMode="outline"
+        app:endIconMode="dropdown_menu"
         app:boxStrokeColor="@color/fitbook_primary"
         app:hintEnabled="false">
 
@@ -79,6 +80,7 @@
         android:layout_marginEnd="2dp"
         app:boxBackgroundColor="@color/fitbook_background"
         app:boxBackgroundMode="outline"
+        app:endIconMode="dropdown_menu"
         app:boxStrokeColor="@color/fitbook_primary"
         app:hintEnabled="false">
 
@@ -111,6 +113,7 @@
         android:layout_marginEnd="2dp"
         app:boxBackgroundColor="@color/fitbook_background"
         app:boxBackgroundMode="outline"
+        app:endIconMode="dropdown_menu"
         app:boxStrokeColor="@color/fitbook_primary"
         app:hintEnabled="false">
 

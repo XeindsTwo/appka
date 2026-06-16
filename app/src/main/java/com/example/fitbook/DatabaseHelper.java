@@ -19,7 +19,7 @@ import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "fitness_club.db";
-    private static final int DATABASE_VERSION = 9;
+    private static final int DATABASE_VERSION = 10;
 
     // ==================== ТАБЛИЦА ПОЛЬЗОВАТЕЛЕЙ ====================
     public static final String TABLE_USERS = "users";
@@ -208,6 +208,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_BOOKING_CLIENT_ID + " INTEGER, " +
                 COL_BOOKING_DATE + " TEXT, " +
                 COL_BOOKING_STATUS + " TEXT)");
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_bookings_unique_client_schedule ON " +
+                TABLE_BOOKINGS + "(" + COL_BOOKING_SCHEDULE_ID + ", " + COL_BOOKING_CLIENT_ID + ")");
 
         // Таблица планов тренировок
         db.execSQL("CREATE TABLE " + TABLE_WORKOUT_PLANS + " (" +
@@ -767,6 +769,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (oldVersion < 9) {
             createMembershipApplicationsTable(db);
         }
+        if (oldVersion < 10) {
+            db.execSQL("DELETE FROM " + TABLE_BOOKINGS +
+                    " WHERE " + COL_BOOKING_ID + " NOT IN (" +
+                    "SELECT MIN(" + COL_BOOKING_ID + ") FROM " + TABLE_BOOKINGS +
+                    " GROUP BY " + COL_BOOKING_SCHEDULE_ID + ", " + COL_BOOKING_CLIENT_ID + ")");
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_bookings_unique_client_schedule ON " +
+                    TABLE_BOOKINGS + "(" + COL_BOOKING_SCHEDULE_ID + ", " + COL_BOOKING_CLIENT_ID + ")");
+        }
         seedMembershipHistory(db);
     }
 
@@ -1172,6 +1182,37 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public boolean bookWorkout(long scheduleId, long clientId) {
         SQLiteDatabase db = this.getWritableDatabase();
+
+        Cursor existing = db.query(TABLE_BOOKINGS, new String[]{COL_BOOKING_ID},
+                COL_BOOKING_SCHEDULE_ID + "=? AND " + COL_BOOKING_CLIENT_ID + "=?",
+                new String[]{String.valueOf(scheduleId), String.valueOf(clientId)}, null, null, null);
+        try {
+            if (existing != null && existing.moveToFirst()) {
+                return false;
+            }
+        } finally {
+            if (existing != null) existing.close();
+        }
+
+        Cursor schedule = db.query(TABLE_SCHEDULE, new String[]{COL_CURRENT_CLIENTS, COL_MAX_CLIENTS},
+                COL_SCHEDULE_ID + "=?", new String[]{String.valueOf(scheduleId)}, null, null, null);
+        int currentClients = 0;
+        int maxClients = 0;
+        try {
+            if (schedule != null && schedule.moveToFirst()) {
+                currentClients = schedule.getInt(schedule.getColumnIndexOrThrow(COL_CURRENT_CLIENTS));
+                maxClients = schedule.getInt(schedule.getColumnIndexOrThrow(COL_MAX_CLIENTS));
+            } else {
+                return false;
+            }
+        } finally {
+            if (schedule != null) schedule.close();
+        }
+
+        if (currentClients >= maxClients) {
+            return false;
+        }
+
         ContentValues booking = new ContentValues();
         booking.put(COL_BOOKING_SCHEDULE_ID, scheduleId);
         booking.put(COL_BOOKING_CLIENT_ID, clientId);
@@ -1180,8 +1221,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         long result = db.insert(TABLE_BOOKINGS, null, booking);
         if (result != -1) {
-            db.execSQL("UPDATE " + TABLE_SCHEDULE + " SET " + COL_CURRENT_CLIENTS +
-                    " = " + COL_CURRENT_CLIENTS + " + 1 WHERE " + COL_SCHEDULE_ID + " = " + scheduleId);
+            ContentValues update = new ContentValues();
+            update.put(COL_CURRENT_CLIENTS, currentClients + 1);
+            db.update(TABLE_SCHEDULE, update, COL_SCHEDULE_ID + "=?", new String[]{String.valueOf(scheduleId)});
             return true;
         }
         return false;

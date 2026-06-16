@@ -1,4 +1,4 @@
-﻿package com.example.fitbook;
+package com.example.fitbook;
 
 import android.content.Intent;
 import android.content.SharedPreferences;

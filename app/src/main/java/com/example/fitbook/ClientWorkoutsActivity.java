@@ -4,7 +4,9 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -12,7 +14,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
 public class ClientWorkoutsActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
@@ -20,8 +21,15 @@ public class ClientWorkoutsActivity extends AppCompatActivity {
     private ListView listView;
     private TextView tvEmpty;
     private final ArrayList<Long> scheduleIds = new ArrayList<>();
-    private final ArrayList<String> dataList = new ArrayList<>();
-    private ArrayAdapter<String> adapter;
+    private final ArrayList<WorkoutItem> items = new ArrayList<>();
+    private final Adapter adapter = new Adapter();
+
+    private static class WorkoutItem {
+        String title;
+        String meta;
+        String trainer;
+        String seats;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,13 +44,12 @@ public class ClientWorkoutsActivity extends AppCompatActivity {
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
         listView = findViewById(R.id.listView);
         tvEmpty = findViewById(R.id.tvEmpty);
-        adapter = new ArrayAdapter<>(this, R.layout.item_dark_list_text, dataList);
         listView.setAdapter(adapter);
         render();
     }
 
     private void render() {
-        dataList.clear();
+        items.clear();
         scheduleIds.clear();
         Cursor workouts = dbHelper.getAvailableWorkouts();
         if (workouts != null && workouts.moveToFirst()) {
@@ -57,35 +64,80 @@ public class ClientWorkoutsActivity extends AppCompatActivity {
                 int max = workouts.getInt(workouts.getColumnIndexOrThrow(DatabaseHelper.COL_MAX_CLIENTS));
 
                 scheduleIds.add(scheduleId);
-                dataList.add(workoutType +
-                        "\nДата: " + DateFormatUtils.formatRussianDate(date) + " " + time +
-                        "\nТренер: " + trainer +
-                        "\nДлительность: " + duration + " мин" +
-                        "\nСвободно мест: " + (max - current) + "/" + max);
+                WorkoutItem item = new WorkoutItem();
+                item.title = workoutType;
+                item.meta = DateFormatUtils.formatRussianDate(date) + " • " + time + " • " + duration + " мин";
+                item.trainer = "Тренер: " + trainer;
+                item.seats = "Свободно: " + (max - current) + " из " + max;
+                items.add(item);
             } while (workouts.moveToNext());
             workouts.close();
         }
 
-        boolean empty = dataList.isEmpty();
+        boolean empty = items.isEmpty();
         tvEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
         listView.setVisibility(empty ? View.GONE : View.VISIBLE);
         if (empty) {
-            dataList.add("Нет доступных тренировок");
+            WorkoutItem emptyItem = new WorkoutItem();
+            emptyItem.title = "Нет доступных тренировок";
+            emptyItem.meta = "Загляни позже — расписание ещё не заполнено.";
+            emptyItem.trainer = "";
+            emptyItem.seats = "";
+            items.add(emptyItem);
         }
         adapter.notifyDataSetChanged();
-
-        listView.setOnItemClickListener((parent, view, position, id) -> {
-            if (position < scheduleIds.size()) {
-                bookWorkout(scheduleIds.get(position));
-            }
-        });
     }
 
     private void bookWorkout(long scheduleId) {
         boolean success = dbHelper.bookWorkout(scheduleId, clientId);
-        Toast.makeText(this, success ? "Вы успешно записались на тренировку" : "Не удалось записаться", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, success
+                ? "Вы успешно записались на тренировку"
+                : "Не удалось записаться: вы уже записаны или мест больше нет", Toast.LENGTH_SHORT).show();
         if (success) {
             render();
+        }
+    }
+
+    private class Adapter extends BaseAdapter {
+        @Override public int getCount() { return items.size(); }
+        @Override public Object getItem(int position) { return items.get(position); }
+        @Override public long getItemId(int position) { return position; }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = getLayoutInflater().inflate(R.layout.item_client_workout, parent, false);
+            }
+            WorkoutItem item = items.get(position);
+            TextView tvTitle = convertView.findViewById(R.id.tvTitle);
+            TextView tvMeta = convertView.findViewById(R.id.tvMeta);
+            TextView tvTrainer = convertView.findViewById(R.id.tvTrainer);
+            TextView tvSeats = convertView.findViewById(R.id.tvSeats);
+            TextView tvHint = convertView.findViewById(R.id.tvHint);
+            Button btnAction = convertView.findViewById(R.id.btnAction);
+
+            tvTitle.setText(item.title);
+            tvMeta.setText(item.meta);
+            tvTrainer.setText(item.trainer);
+            tvSeats.setText(item.seats);
+            tvHint.setText(position < scheduleIds.size()
+                    ? "Подходит для записи в один клик"
+                    : "Карточка показывает пример оформления блока");
+
+            boolean canBook = position < scheduleIds.size();
+            btnAction.setText("Записаться");
+            btnAction.setVisibility(canBook ? View.VISIBLE : View.GONE);
+            btnAction.setOnClickListener(v -> {
+                if (position < scheduleIds.size()) {
+                    bookWorkout(scheduleIds.get(position));
+                }
+            });
+            convertView.setOnClickListener(v -> {
+                if (position < scheduleIds.size()) {
+                    bookWorkout(scheduleIds.get(position));
+                }
+            });
+            return convertView;
         }
     }
 }

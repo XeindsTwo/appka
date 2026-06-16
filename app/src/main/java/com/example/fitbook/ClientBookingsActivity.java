@@ -85,10 +85,14 @@ public class ClientBookingsActivity extends AppCompatActivity {
             ((TextView) convertView.findViewById(R.id.tvTitle)).setText(item.title);
             ((TextView) convertView.findViewById(R.id.tvMeta)).setText(item.meta);
             TextView tvStatusTag = convertView.findViewById(R.id.tvStatusTag);
+            TextView tvHint = convertView.findViewById(R.id.tvHint);
             MaterialButton btnDone = convertView.findViewById(R.id.btnDone);
             boolean done = "completed".equals(item.status);
             boolean canFinish = "confirmed".equals(item.status);
             tvStatusTag.setVisibility(done ? View.VISIBLE : View.GONE);
+            tvHint.setText(done
+                    ? "Тренировка закрыта и сохранена как завершённая"
+                    : "Можно завершить занятие после его выполнения");
             btnDone.setVisibility(canFinish ? View.VISIBLE : View.GONE);
             btnDone.setOnClickListener(v -> markCompleted(bookingIds.get(position)));
             return convertView;
